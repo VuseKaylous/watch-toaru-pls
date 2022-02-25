@@ -12,7 +12,7 @@ void logSDLError(std::ostream& os,
     }
 }
 
-const int SCREEN_WIDTH = 1000;
+const int SCREEN_WIDTH = 1040;
 const int SCREEN_HEIGHT = 680;
 const string WINDOW_TITLE = "Haachamachama!!!";
 
@@ -57,11 +57,43 @@ void waitUntilKeyPressed()
     }
 }
 
-void drawRect(int x,int y, int w,int h, SDL_Renderer* renderer) {
+//----------------------------------- real coding part ---------------------------------------
+
+const int N = 100;
+bool cover[N][N], isBomb[N][N]; // 10x10, 16x16, 30x16
+int Rows, Cols;
+
+void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer) {
     SDL_Rect fillRect = { x, y, w, h };
-    SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0x00, 0xFF );
+    if (isCovered) SDL_SetRenderDrawColor( renderer, 95, 106, 122, 0 );
+    else SDL_SetRenderDrawColor( renderer, 158, 182, 217, 0 );
     SDL_RenderFillRect( renderer, &fillRect );
     SDL_RenderPresent(renderer);
+}
+
+void reset() {
+    memset(cover,0,sizeof(cover));
+    memset(isBomb,0,sizeof(isBomb));
+}
+
+void drawBoard(SDL_Renderer* renderer) {
+    int squareSize = SCREEN_WIDTH/cols;
+    for (int i=0;i<Rows;i++) {
+        for (int j=0;j<Cols;j++) {
+            drawSquare(SCREEN_HEIGHT - (Rows-i)*squareSize, 0+j*squareSize, squareSize,squareSize,cover[i][j], renderer);
+        }
+    }
+}
+
+int countBombs(int x,int y) {
+    int xi[]={1,1,1,0,0,-1,-1,-1}, yi[]={-1,0,1,-1,1,-1,0,1} ;
+    int Haachamachama = 0;
+    for (int i=0;i<8;i++) {
+        if (0<=x+xi[i] && x+xi[i]<Rows && 0<=y+yi[i] && y+yi[i]<Cols) {
+            Haachamachama += isBomb[x+xi[i]][y+yi[i]] ;
+        }
+    }
+    return Haachamachama ;
 }
 
 int main(int argc, char* argv[]) {
@@ -72,7 +104,8 @@ int main(int argc, char* argv[]) {
     // Your drawing code here
     SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
     SDL_RenderClear( renderer );
-    drawRect(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, renderer);
+    // drawRect(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, renderer);
+
 
     // use SDL_RenderPresent(renderer) to show it
 

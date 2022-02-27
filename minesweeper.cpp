@@ -12,7 +12,7 @@ void logSDLError(std::ostream& os,
     }
 }
 
-const int SCREEN_WIDTH = 1040;
+const int SCREEN_WIDTH = 720;
 const int SCREEN_HEIGHT = 680;
 const string WINDOW_TITLE = "Haachamachama!!!";
 
@@ -68,7 +68,7 @@ void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer
     if (isCovered) SDL_SetRenderDrawColor( renderer, 95, 106, 122, 0 );
     else SDL_SetRenderDrawColor( renderer, 158, 182, 217, 0 );
     SDL_RenderFillRect( renderer, &fillRect );
-    SDL_RenderPresent(renderer);
+    // SDL_RenderPresent(renderer);
 }
 
 void reset() {
@@ -77,12 +77,32 @@ void reset() {
 }
 
 void drawBoard(SDL_Renderer* renderer) {
-    int squareSize = SCREEN_WIDTH/cols;
+    int squareSize = SCREEN_WIDTH/Cols;
+
     for (int i=0;i<Rows;i++) {
         for (int j=0;j<Cols;j++) {
-            drawSquare(SCREEN_HEIGHT - (Rows-i)*squareSize, 0+j*squareSize, squareSize,squareSize,cover[i][j], renderer);
+            drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer);
         }
     }
+    SDL_SetRenderDrawColor(renderer, 0,0,0,0);
+    for (int i=0;i<=Rows;i++) {
+        SDL_RenderDrawLine(renderer, 0, SCREEN_HEIGHT-(Rows-i)*squareSize, SCREEN_WIDTH, SCREEN_HEIGHT-(Rows-i)*squareSize);
+    }
+    for (int i=0;i<=Cols;i++) {
+        SDL_RenderDrawLine(renderer, i*squareSize, SCREEN_HEIGHT-Rows*squareSize, i*squareSize, SCREEN_HEIGHT );
+    }
+
+    
+    // for test:
+    // SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    // SDL_Rect fillRect = {SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
+    // SDL_RenderFillRect(renderer, &fillRect);
+    // SDL_RenderDrawLine(renderer, 0,0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    // drawSquare(0, 0, squareSize, squareSize, true, renderer);
+    // drawSquare(0, SCREEN_HEIGHT - Rows*squareSize, squareSize,squareSize,true, renderer);
+    SDL_RenderPresent(renderer);
+    
+    // SDL_RenderDrawLine( renderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2 );
 }
 
 int countBombs(int x,int y) {
@@ -102,11 +122,14 @@ int main(int argc, char* argv[]) {
     initSDL(window, renderer);
 
     // Your drawing code here
-    SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
     SDL_RenderClear( renderer );
     // drawRect(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, renderer);
 
-
+    Rows = 24 ;
+    Cols = 30 ;
+    reset();
+    drawBoard(renderer);
     // use SDL_RenderPresent(renderer) to show it
 
     waitUntilKeyPressed();

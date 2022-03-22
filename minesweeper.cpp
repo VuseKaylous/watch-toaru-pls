@@ -1,6 +1,7 @@
 #include<iostream>
 #include<ctime>
 #include "SDL.h"
+#include "SDL_image.h"
 using namespace std;
 
 void logSDLError(std::ostream& os,
@@ -35,6 +36,14 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer) {
 
     if (renderer == nullptr) logSDLError(std::cout, "CreateRenderer", true);
 
+    int imgFlags = IMG_INIT_PNG;
+    if( !( IMG_Init( imgFlags ) & imgFlags ) )
+    {
+        // printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+        // success = false;
+        logSDLError(std::cout,"InitializePNGloading",true);
+    }
+
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -66,6 +75,7 @@ void waitUntilKeyPressed()
 //----------------------------------- real coding part ---------------------------------------
 
 const int N = 100;
+
 
 bool cover[N][N], isBomb[N][N]; // 10x10, 16x16, 30x16
 int Rows, Cols;

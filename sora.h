@@ -14,11 +14,8 @@ void logSDLError(std::ostream& os,
     }
 }
 
-const int SCREEN_WIDTH = 720;
-const int SCREEN_HEIGHT = 680;
-const string WINDOW_TITLE = "Haachamachama!!!";
 
-void initSDL(SDL_Window* &window, SDL_Renderer* &renderer) {
+void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int SCREEN_HEIGHT,string WINDOW_TITLE) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         logSDLError(std::cout, "SDL_Init", true);
     if (SDL_Init(SDL_INIT_VIDEO)<0) 

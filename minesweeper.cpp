@@ -8,6 +8,10 @@
 
 using namespace std;
 
+const int SCREEN_WIDTH = 720;
+const int SCREEN_HEIGHT = 680;
+const string WINDOW_TITLE = "Haachamachama!!!";
+
 //------------------------------------------ ¯\_(ツ)_/¯ ---------------------------------------------
 
 void waitUntilKeyPressed()
@@ -132,7 +136,7 @@ void BOARD::drawBoard(SDL_Renderer* renderer) {
 
 int main(int argc, char* argv[]) { // watch toaru pls :)
     srand(time(0));
-    initSDL(window, renderer);
+    initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
     screen = SDL_GetWindowSurface(window);
     bool loadingSuccessfull = loadMedia();
     if (!loadingSuccessfull) {

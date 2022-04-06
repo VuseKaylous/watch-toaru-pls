@@ -34,7 +34,10 @@ void waitUntilKeyPressed()
 
 SDL_Window* window;
 SDL_Renderer* renderer;
-SDL_Surface* screen ;
+// SDL_Surface* screen ;
+SDL_Event e;
+// SDL_MouseButtonEvent Rat;
+bool MouseIsDown = false;
 SDL_Texture* numbers[10] ;
 
 SDL_Texture* loadSurface( std::string path )
@@ -85,15 +88,30 @@ bool loadMedia()
 
 //----------------------------------- real coding part -----------------------------------------------------------------------------------
 
+bool isIn(int x1,int y1,int x2,int y2) {
+    int x,y;
+    SDL_GetMouseState(&x,&y);
+    if (x1<x && x<x2 && y1<y && y<y2) return true;
+    return false;
+}
+
 //---------------------------------------- board-related -----------------------------------------
 
 
 BOARD board;
 
-
 void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer,int cntBombs) {
     SDL_Rect fillRect = { x, y, w, h };
-    if (isCovered) SDL_SetRenderDrawColor( renderer, 41, 223, 255, 0 );
+    if (isCovered) {
+        if (isIn(x,y,x+w,y+h)) {
+            if (MouseIsDown){
+                // cout << "fuck\n";
+                SDL_SetRenderDrawColor(renderer, 117, 202, 255, 0);
+            }
+            else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 0);
+        }
+        else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 0 );
+    }
     else {
         SDL_SetRenderDrawColor( renderer, 255, 255, 255, 0 );
         
@@ -137,7 +155,7 @@ void BOARD::drawBoard(SDL_Renderer* renderer) {
 int main(int argc, char* argv[]) { // watch toaru pls :)
     srand(time(0));
     initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
-    screen = SDL_GetWindowSurface(window);
+    // screen = SDL_GetWindowSurface(window);
     bool loadingSuccessfull = loadMedia();
     if (!loadingSuccessfull) {
         cout << "failed to load media" ;
@@ -155,10 +173,21 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     board.Cols = 30 ;
     board.reset();
     // board.unReset();
-    board.drawBoard(renderer);
+    bool quit = false;
+    while (!quit) {
+        if (SDL_PollEvent(&e)!=0) {
+            if (e.type == SDL_QUIT) quit = true;
+            if (e.type == SDL_KEYDOWN) {
+                if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+            }
+            if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
+            if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
+        }
+        board.drawBoard(renderer);
+    }
+    
 
-
-    waitUntilKeyPressed();
+    // waitUntilKeyPressed();
 
 
     // use SDL_RenderPresent(renderer) to show it

@@ -1,7 +1,7 @@
 # watch-toaru-pls
 There's nothing in here, bye bye
 Quest:
-- create simple functional board
++ create simple functional board
 - create time counter
 - create simple menu
 - create fade menu

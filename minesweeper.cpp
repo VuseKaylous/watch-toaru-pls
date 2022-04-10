@@ -55,6 +55,8 @@ bool quit = false;
 float winningOpacity = 0;
 float winningShowUp = 0;
 
+time_t startTime,endTime;
+
 bool loadMedia()
 {
     bool success = true;
@@ -119,6 +121,8 @@ void restart() {
 
     winningOpacity = 0;
     winningShowUp = 0;
+
+    startTime = time(0);
 
     // cout << board.numNotBombs << "\n" ;
 }

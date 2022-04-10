@@ -53,3 +53,31 @@ void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
+
+SDL_Texture* loadSurface( std::string path , SDL_Renderer* renderer)
+{
+    //The final optimized image
+    SDL_Texture* optimizedSurface = NULL;
+
+    //Load image at specified path
+    SDL_Surface* loadedSurface = SDL_LoadBMP( path.c_str() );
+    if( loadedSurface == NULL )
+    {
+        printf( "Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+    }
+    else
+    {
+        //Convert surface to screen format
+        optimizedSurface = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+        if( optimizedSurface == NULL )
+        {
+            printf( "Unable to create texture %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+        }
+
+        //Get rid of old loaded surface
+        SDL_FreeSurface( loadedSurface );
+    }
+
+    return optimizedSurface;
+}
+

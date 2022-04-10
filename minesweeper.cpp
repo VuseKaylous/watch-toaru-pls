@@ -1,7 +1,7 @@
 #include<iostream>
 #include<ctime>
 #include<SDL.h>
-// #include<SDL_image.h>
+#include<SDL_image.h>
 // #include "SDL_ttf.h"
 #include "sora.h"
 #include "rushia.h"
@@ -38,34 +38,13 @@ SDL_Renderer* renderer;
 SDL_Event e;
 // SDL_MouseButtonEvent Rat;
 bool MouseIsDown = false;
-SDL_Texture* numbers[10] ;
 
-SDL_Texture* loadSurface( std::string path )
-{
-    //The final optimized image
-    SDL_Texture* optimizedSurface = NULL;
+SDL_Texture* numbers[10];
+SDL_Texture* bomb ;
+SDL_Texture* flag ;
 
-    //Load image at specified path
-    SDL_Surface* loadedSurface = SDL_LoadBMP( path.c_str() );
-    if( loadedSurface == NULL )
-    {
-        printf( "Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-    }
-    else
-    {
-        //Convert surface to screen format
-        optimizedSurface = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-        if( optimizedSurface == NULL )
-        {
-            printf( "Unable to create texture %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-        }
 
-        //Get rid of old loaded surface
-        SDL_FreeSurface( loadedSurface );
-    }
-
-    return optimizedSurface;
-}
+bool quit = false;
 
 bool loadMedia()
 {
@@ -74,13 +53,23 @@ bool loadMedia()
     string loadingPictures = "picture/x.bmp";
     for (char i='0';i<='9';i++) {
         loadingPictures[8] = i;
-        numbers[i-'0'] = loadSurface(loadingPictures);
+        numbers[i-'0'] = loadSurface(loadingPictures, renderer);
         if (numbers[i-'0'] == NULL) {
             // printf( "Failed to load image!\n" );
             cout << "Failed to load image " << i << "\n" ;
             success = false;
             break;
         }
+    }
+    bomb = loadSurface("picture/bomb.bmp",renderer);
+    if (bomb == NULL) {
+        cout << "Failed to load bomb " << "\n" ;
+        success = false;
+    }
+    flag = loadSurface("picture/flag.bmp",renderer);
+    if (flag == NULL) {
+        cout << "Failed to load flag " << "\n" ;
+        success = false;
     }
 
     return success;
@@ -100,35 +89,40 @@ bool isIn(int x1,int y1,int x2,int y2) {
 
 BOARD board;
 
-void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer,int cntBombs) {
+void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer,int cntBombs, int xi,int yi) {
     SDL_Rect fillRect = { x, y, w, h };
     if (isCovered) {
         if (isIn(x,y,x+w,y+h)) {
             if (MouseIsDown){
-                // cout << "fuck\n";
                 SDL_SetRenderDrawColor(renderer, 117, 202, 255, 0);
             }
             else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 0);
         }
         else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 0 );
+        SDL_RenderFillRect( renderer, &fillRect );
+        if (board.flagged[xi][yi]) {
+            SDL_RenderCopy(renderer, flag, NULL, &fillRect);
+        }
     }
     else {
-        SDL_SetRenderDrawColor( renderer, 255, 255, 255, 0 );
-        
+        if (board.isBomb[xi][yi]) SDL_RenderCopy(renderer, bomb, NULL,&fillRect);
+        else {
+            if (cntBombs>0) {
+                SDL_RenderCopy( renderer, numbers[cntBombs], NULL, &fillRect );
+            } else {
+                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 0 );
+                SDL_RenderFillRect( renderer, &fillRect );
+            }
+        }
     }
-    SDL_RenderFillRect( renderer, &fillRect );
-    if (cntBombs>0 && !isCovered) {
-        // cout << "fuck\n" ;
-        SDL_RenderCopy( renderer, numbers[cntBombs], NULL, &fillRect );
-    }
-    // SDL_RenderPresent(renderer);
+    
 }
 
 void BOARD::drawBoard(SDL_Renderer* renderer) {
-    int squareSize = SCREEN_WIDTH/Cols;
+    // squareSize = SCREEN_WIDTH/Cols;
     for (int i=0;i<Rows;i++) {
         for (int j=0;j<Cols;j++) {
-            drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer, countBombs(i,j));
+            drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer, countBombs(i,j), i,j);
             // cout << countBombs(i,j) << "\n" ;
         }
     }
@@ -147,7 +141,44 @@ void BOARD::drawBoard(SDL_Renderer* renderer) {
 }
 //--------------------------------------------- event-related ---------------------------------------------------
 
-
+void Solve() {
+    if (e.type == SDL_MOUSEBUTTONUP) {
+        int x,y;
+        SDL_GetMouseState(&x,&y);
+        int xi = y - board.disFromTop,yi=x;
+        xi/=board.squareSize;
+        yi/=board.squareSize;
+        // cout << xi << " " << yi << "\n" ;
+        if (board.cover[xi][yi]) {
+            // cout << Rat.button << "\n";
+            if (e.button.button == SDL_BUTTON_LEFT && !board.flagged[xi][yi]) {
+                if (!board.isBomb[xi][yi]) {
+                    if (board.countBombs(xi,yi)==0) board.floodField(xi,yi);
+                    else board.cover[xi][yi] = false;
+                }
+                else {
+                    board.unReset();
+                }
+            }
+            if (e.button.button == SDL_BUTTON_RIGHT && board.cover[xi][yi]) board.flagged[xi][yi] = 1 - board.flagged[xi][yi];
+        }
+    }
+    if (e.button.clicks == 2) {
+        // cout << "fuck " ;
+        int x,y;
+        SDL_GetMouseState(&x,&y);
+        int xi = y - board.disFromTop,yi=x;
+        xi/=board.squareSize;
+        yi/=board.squareSize;
+        // cout << xi << " " << yi << " " << board.cover[xi][yi] << " " << board.countBombs(xi,yi) << " " << board.countFlags(xi,yi) << "\n" ;
+        if (!board.cover[xi][yi] && board.countBombs(xi,yi) == board.countFlags(xi,yi)) {
+            // cout << "possible \n" ;
+            // board.cover[xi][yi] = true;
+            bool test = board.floodField2(xi,yi);
+            if (!test) board.unReset();
+        }
+    }
+}
 
 //------------------------------------------------- main ---------------------------------------------------
 
@@ -172,8 +203,9 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     board.Rows = 24 ;
     board.Cols = 30 ;
     board.reset();
+    board.squareSize = SCREEN_WIDTH/board.Cols;
+    board.disFromTop = SCREEN_HEIGHT - board.Rows * board.squareSize;
     // board.unReset();
-    bool quit = false;
     while (!quit) {
         if (SDL_PollEvent(&e)!=0) {
             if (e.type == SDL_QUIT) quit = true;
@@ -182,6 +214,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             }
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
+            Solve();
         }
         board.drawBoard(renderer);
     }

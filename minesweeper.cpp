@@ -45,17 +45,18 @@ SDL_Texture* flag ;
 SDL_Texture* RestartButton ;
 SDL_Texture* trigerredBomb ;
 SDL_Texture* winning;
+SDL_Texture* menu;
 
-SDL_Rect RestartRect;
-SDL_Rect playField;
 
 BOARD board;
+
+SDL_Rect MenuRect;
 
 bool quit = false;
 float winningOpacity = 0;
 float winningShowUp = 0;
 
-time_t startTime,endTime;
+// time_t startTime,endTime;
 
 bool loadMedia()
 {
@@ -97,6 +98,11 @@ bool loadMedia()
         cout << "Failed to load winning " << "\n" ;
         success = false;
     }
+    menu = loadSurface("picture/menu.bmp",renderer);
+    if (menu == NULL) {
+        cout << "Failed to load menu " << "\n" ;
+        success = false;
+    }
 
     return success;
 }
@@ -110,46 +116,48 @@ bool isIn(int x1,int y1,int x2,int y2) {
     return false;
 }
 
-void restart() {
+void restart1p(SDL_Rect &playField, SDL_Rect &RestartRect) {
+
     board.Rows = 24 ;
     board.Cols = 30 ;
-    board.reset();
     board.squareSize = SCREEN_WIDTH/board.Cols;
-    board.disFromTop = SCREEN_HEIGHT - board.Rows * board.squareSize;
-    RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(board.disFromTop-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
-    playField = {0,board.disFromTop,SCREEN_WIDTH,SCREEN_HEIGHT-board.disFromTop};
+    // board.disFromTop = SCREEN_HEIGHT - board.Rows * board.squareSize;
+    playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
+    // board.disFromTop = playField.y
+    RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
+    MenuRect = {playField.y/4, playField.y/4, playField.y, playField.y/2};
+    board.reset();
 
     winningOpacity = 0;
     winningShowUp = 0;
 
-    startTime = time(0);
+    // startTime = time(0);
 
     // cout << board.numNotBombs << "\n" ;
 }
 
 //---------------------------------------- board-related -----------------------------------------
 
-void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer,int cntBombs, int xi,int yi) {
+void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi) {
     SDL_Rect fillRect = { x, y, w, h };
-    if (isCovered) {
-        if (isIn(x,y,x+w,y+h)) {
-            if (MouseIsDown){
-                SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
-            }
+    if (cover[xi][yi]) {
+        if (isIn(x,y,x+w,y+h)) { // hovering
+            if (MouseIsDown) SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
             else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 255);
         }
         else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
         SDL_RenderFillRect( renderer, &fillRect );
-        if (board.flagged[xi][yi]) {
+        if (flagged[xi][yi]) {
             SDL_RenderCopy(renderer, flag, NULL, &fillRect);
         }
     }
     else {
-        if (board.isBomb[xi][yi]) {
-            if (xi == board.trigerredX && yi == board.trigerredY) SDL_RenderCopy(renderer, trigerredBomb, NULL,&fillRect);
+        if (isBomb[xi][yi]) {
+            if (xi == trigerredX && yi == trigerredY) SDL_RenderCopy(renderer, trigerredBomb, NULL,&fillRect);
             else SDL_RenderCopy(renderer, bomb, NULL,&fillRect);
         }
         else {
+            int cntBombs = countBombs(xi,yi);
             if (cntBombs>0) {
                 SDL_RenderCopy( renderer, numbers[cntBombs], NULL, &fillRect );
             } else {
@@ -161,39 +169,26 @@ void drawSquare(int x,int y, int w,int h, bool isCovered, SDL_Renderer* renderer
     
 }
 
-void BOARD::drawBoard(SDL_Renderer* renderer) {
-    // squareSize = SCREEN_WIDTH/Cols;
-    for (int i=0;i<Rows;i++) {
-        for (int j=0;j<Cols;j++) {
-            drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer, countBombs(i,j), i,j);
-            // cout << countBombs(i,j) << "\n" ;
-        }
-    }
-    SDL_SetRenderDrawColor(renderer, 0,0,0,255);
-    for (int i=0;i<=Rows;i++) {
-        SDL_RenderDrawLine(renderer, 0, SCREEN_HEIGHT-(Rows-i)*squareSize, SCREEN_WIDTH, SCREEN_HEIGHT-(Rows-i)*squareSize);
-    }
-    for (int i=0;i<=Cols;i++) {
-        SDL_RenderDrawLine(renderer, i*squareSize, SCREEN_HEIGHT-Rows*squareSize, i*squareSize, SCREEN_HEIGHT );
-    }
-
-    // SDL_Rect RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(board.disFromTop-board.squareSize)/2,board.squareSize,board.squareSize};
-    SDL_RenderCopy(renderer, RestartButton, NULL, &RestartRect);
-
-    // SDL_UpdateWindowSurface( window );
-    // SDL_RenderPresent(renderer);
-    
-    // SDL_RenderDrawLine( renderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2 );
-}
 //--------------------------------------------- event-related ---------------------------------------------------
 
-void Solve() {
+bool restartOrNot(SDL_Rect RestartRect, int x,int y) {
+    int x1,x2,y1,y2;
+    x1 = RestartRect.x;
+    y1 = RestartRect.y;
+    x2 = x1 + RestartRect.w;
+    y2 = y1 + RestartRect.h;
+    return (x1<=x && x<=x2 && y1<=y && y<=y2);
+}
+
+
+
+void Solve(SDL_Rect &RestartRect, SDL_Rect &playField) {
     if (e.type == SDL_MOUSEBUTTONUP) {
         int x,y;
         SDL_GetMouseState(&x,&y);
-        if (y >= board.disFromTop) { // inside board
+        if (y >= playField.y) { // inside board
             if (winningShowUp == 0) {
-                int xi = y - board.disFromTop,yi=x;
+                int xi = y - playField.y,yi=x;
                 xi/=board.squareSize;
                 yi/=board.squareSize;
                 // cout << xi << " " << yi << "\n" ;
@@ -220,15 +215,7 @@ void Solve() {
             }
                 
         } else {
-            int x1,x2,y1,y2;
-            x1 = RestartRect.x;
-            y1 = RestartRect.y;
-            x2 = x1 + RestartRect.w;
-            y2 = y1 + RestartRect.h;
-            // cout << x1 << " " << y1 << " " << x2 << " " << y2 << "\n" ;
-            if (x1<=x && x<=x2 && y1<=y && y<=y2) {
-                restart();
-            }
+            if (restartOrNot(RestartRect,x,y)) restart1p(playField, RestartRect);
         }
             
     }
@@ -236,7 +223,7 @@ void Solve() {
         // cout << "fuck " ;
         int x,y;
         SDL_GetMouseState(&x,&y);
-        int xi = y - board.disFromTop,yi=x;
+        int xi = y - playField.y,yi=x;
         xi/=board.squareSize;
         yi/=board.squareSize;
         // cout << xi << " " << yi << " " << board.cover[xi][yi] << " " << board.countBombs(xi,yi) << " " << board.countFlags(xi,yi) << "\n" ;
@@ -246,6 +233,21 @@ void Solve() {
             bool test = board.floodField2(xi,yi);
             if (!test) board.unReset();
         }
+    }
+}
+
+void OnePlayer(SDL_Rect &RestartRect, SDL_Rect &playField) {
+    board.drawBoard(renderer, playField);
+    SDL_RenderCopy(renderer, RestartButton, NULL, &RestartRect);
+    SDL_RenderCopy(renderer, menu, NULL, &MenuRect);
+
+    if (board.numNotBombs <= 0 && winningShowUp == 0) winningShowUp = 5;
+
+    if (winningShowUp!=0) {
+        if (winningShowUp > 0 && winningOpacity < 255) winningOpacity += winningShowUp;
+        if (winningShowUp < 0 && winningOpacity > 0) winningOpacity += winningShowUp;
+        SDL_SetTextureAlphaMod(winning, winningOpacity);
+        SDL_RenderCopy(renderer, winning, NULL, &playField);
     }
 }
 
@@ -267,12 +269,18 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     // Your drawing code here
     SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
     SDL_RenderClear( renderer );
-    // drawRect(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, renderer);
 
     SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
 
-    restart();
+    //----------------------------------------------------------------------------------------------
+
+
+    SDL_Rect RestartRect;
+    SDL_Rect playField;
+
+    restart1p(playField, RestartRect);
     // board.unReset();
+
     while (!quit) {
         if (SDL_PollEvent(&e)!=0) {
             if (e.type == SDL_QUIT) quit = true;
@@ -281,18 +289,11 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             }
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
-            Solve();
+            Solve(RestartRect, playField);
         }
-        board.drawBoard(renderer);
-        if (board.numNotBombs <= 0 && winningShowUp == 0) winningShowUp = 5;
-        // console.log(board.numNotBombs);
 
-        if (winningShowUp!=0) {
-            if (winningShowUp > 0 && winningOpacity < 255) winningOpacity += winningShowUp;
-            if (winningShowUp < 0 && winningOpacity > 0) winningOpacity += winningShowUp;
-            SDL_SetTextureAlphaMod(winning, winningOpacity);
-            SDL_RenderCopy(renderer, winning, NULL, &playField);
-        }
+        OnePlayer(RestartRect, playField);
+
         SDL_RenderPresent(renderer);
     }
     

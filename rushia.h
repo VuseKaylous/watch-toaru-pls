@@ -1,3 +1,5 @@
+#ifndef RUSHIA_H
+#define RUSHIA_H
 #include<iostream>
 #include<cstring>
 #include<ctime>
@@ -85,5 +87,24 @@ struct BOARD {
         }
         return true;
     }
-    void drawBoard(SDL_Renderer* renderer);
+    void drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi);
+    void drawBoard(SDL_Renderer* renderer, SDL_Rect playField) {
+        for (int i=0;i<Rows;i++) {
+            for (int j=0;j<Cols;j++) {
+                // drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer, countBombs(i,j), i,j);
+                drawSquare(playField.x + j*squareSize, playField.y + i*squareSize, squareSize,squareSize, renderer, i, j);
+                // cout << countBombs(i,j) << "\n" ;
+            }
+        }
+        SDL_SetRenderDrawColor(renderer, 0,0,0,255);
+        for (int i=0;i<=Rows;i++) {
+            SDL_RenderDrawLine(renderer, playField.x, playField.y + i*squareSize, playField.x + playField.w, playField.y + i*squareSize);
+        }
+        for (int i=0;i<=Cols;i++) {
+            SDL_RenderDrawLine(renderer, i*squareSize, playField.y, i*squareSize, playField.y + playField.h );
+        }
+    }
+    
 };
+
+#endif

@@ -1,3 +1,5 @@
+#ifndef SORA_H
+#define SORA_H
 #include<iostream>
 #include<SDL.h>
 // #include<SDL_image.h>
@@ -81,3 +83,4 @@ SDL_Texture* loadSurface( std::string path , SDL_Renderer* renderer)
     return optimizedSurface;
 }
 
+#endif

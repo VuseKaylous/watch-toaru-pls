@@ -22,13 +22,13 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int
         logSDLError(std::cout, "SDL_Init", true);
     if (SDL_Init(SDL_INIT_VIDEO)<0) 
         logSDLError(std::cout, "SDL_Init_video", true);
-    // int imgFlags = IMG_INIT_PNG;
-    // if( !( IMG_Init( imgFlags ) & imgFlags ) )
-    // {
-    //     // printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
-    //     // success = false;
-    //     logSDLError(std::cout, "SDL_Img_Init", true);
-    // }
+    int imgFlags = IMG_INIT_PNG;
+    if( !( IMG_Init( imgFlags ) & imgFlags ) )
+    {
+        // printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+        // success = false;
+        logSDLError(std::cout, "SDL_Img_Init", true);
+    }
 
     window = SDL_CreateWindow(WINDOW_TITLE.c_str(), SDL_WINDOWPOS_CENTERED,
        SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -62,7 +62,7 @@ SDL_Texture* loadSurface( std::string path , SDL_Renderer* renderer)
     SDL_Texture* optimizedSurface = NULL;
 
     //Load image at specified path
-    SDL_Surface* loadedSurface = SDL_LoadBMP( path.c_str() );
+    SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
     if( loadedSurface == NULL )
     {
         printf( "Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );

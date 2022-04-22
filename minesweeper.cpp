@@ -62,9 +62,9 @@ bool loadMedia()
 {
     bool success = true;
     //Load stretching surface
-    string loadingPictures = "picture/x.bmp";
+    string loadingPictures = "picture/SDL_image_related/x.png";
     for (char i='0';i<='9';i++) {
-        loadingPictures[8] = i;
+        loadingPictures[26] = i;
         numbers[i-'0'] = loadSurface(loadingPictures, renderer);
         if (numbers[i-'0'] == NULL) {
             // printf( "Failed to load image!\n" );
@@ -73,32 +73,32 @@ bool loadMedia()
             break;
         }
     }
-    bomb = loadSurface("picture/bomb.bmp",renderer);
+    bomb = loadSurface("picture/SDL_image_related/bomb.png",renderer);
     if (bomb == NULL) {
         cout << "Failed to load bomb " << "\n" ;
         success = false;
     }
-    flag = loadSurface("picture/flag.bmp",renderer);
+    flag = loadSurface("picture/SDL_image_related/flag.png",renderer);
     if (flag == NULL) {
         cout << "Failed to load flag " << "\n" ;
         success = false;
     }
-    RestartButton = loadSurface("picture/restartButton.bmp",renderer);
+    RestartButton = loadSurface("picture/SDL_image_related/restartButton.png",renderer);
     if (RestartButton == NULL) {
         cout << "Failed to load restart button " << "\n" ;
         success = false;
     }
-    trigerredBomb = loadSurface("picture/trigerredBomb.bmp",renderer);
+    trigerredBomb = loadSurface("picture/SDL_image_related/trigerredBomb.png",renderer);
     if (trigerredBomb == NULL) {
         cout << "Failed to load trigerred bomb " << "\n" ;
         success = false;
     }
-    winning = loadSurface("picture/winning.bmp",renderer);
+    winning = loadSurface("picture/SDL_image_related/winning.png",renderer);
     if (winning == NULL) {
         cout << "Failed to load winning " << "\n" ;
         success = false;
     }
-    menu = loadSurface("picture/menu.bmp",renderer);
+    menu = loadSurface("picture/SDL_image_related/menu.png",renderer);
     if (menu == NULL) {
         cout << "Failed to load menu " << "\n" ;
         success = false;

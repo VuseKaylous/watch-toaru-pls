@@ -36,16 +36,13 @@ SDL_Window* window;
 SDL_Renderer* renderer;
 // SDL_Surface* screen ;
 SDL_Event e;
-// SDL_MouseButtonEvent Rat;
 bool MouseIsDown = false;
 
+enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu} ;
+string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu"};
+
 SDL_Texture* numbers[10];
-SDL_Texture* bomb ;
-SDL_Texture* flag ;
-SDL_Texture* RestartButton ;
-SDL_Texture* trigerredBomb ;
-SDL_Texture* winning;
-SDL_Texture* menu;
+SDL_Texture* pic[6];
 
 
 BOARD board;
@@ -62,10 +59,11 @@ bool loadMedia()
 {
     bool success = true;
     //Load stretching surface
-    string loadingPictures = "picture/SDL_image_related/x.png";
+    string loadingPictures = "picture/SDL_image_related/";
     for (char i='0';i<='9';i++) {
-        loadingPictures[26] = i;
-        numbers[i-'0'] = loadSurface(loadingPictures, renderer);
+        string si = loadingPictures + i + ".png";
+        // loadingPictures[26] = i;
+        numbers[i-'0'] = loadSurface(si, renderer);
         if (numbers[i-'0'] == NULL) {
             // printf( "Failed to load image!\n" );
             cout << "Failed to load image " << i << "\n" ;
@@ -73,35 +71,14 @@ bool loadMedia()
             break;
         }
     }
-    bomb = loadSurface("picture/SDL_image_related/bomb.png",renderer);
-    if (bomb == NULL) {
-        cout << "Failed to load bomb " << "\n" ;
-        success = false;
-    }
-    flag = loadSurface("picture/SDL_image_related/flag.png",renderer);
-    if (flag == NULL) {
-        cout << "Failed to load flag " << "\n" ;
-        success = false;
-    }
-    RestartButton = loadSurface("picture/SDL_image_related/restartButton.png",renderer);
-    if (RestartButton == NULL) {
-        cout << "Failed to load restart button " << "\n" ;
-        success = false;
-    }
-    trigerredBomb = loadSurface("picture/SDL_image_related/trigerredBomb.png",renderer);
-    if (trigerredBomb == NULL) {
-        cout << "Failed to load trigerred bomb " << "\n" ;
-        success = false;
-    }
-    winning = loadSurface("picture/SDL_image_related/winning.png",renderer);
-    if (winning == NULL) {
-        cout << "Failed to load winning " << "\n" ;
-        success = false;
-    }
-    menu = loadSurface("picture/SDL_image_related/menu.png",renderer);
-    if (menu == NULL) {
-        cout << "Failed to load menu " << "\n" ;
-        success = false;
+    for (int i=0;i<6;i++) {
+        string si = loadingPictures + picChar[i] + ".png";
+        pic[i] = loadSurface(si,renderer);
+        if (pic[i] == NULL) {
+            cout << "Failed to load image " << picChar[i] << "\n" ;
+            success = false;
+            break;
+        }
     }
 
     return success;
@@ -148,13 +125,13 @@ void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,
         else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
         SDL_RenderFillRect( renderer, &fillRect );
         if (flagged[xi][yi]) {
-            SDL_RenderCopy(renderer, flag, NULL, &fillRect);
+            SDL_RenderCopy(renderer, pic[flag], NULL, &fillRect);
         }
     }
     else {
         if (isBomb[xi][yi]) {
-            if (xi == trigerredX && yi == trigerredY) SDL_RenderCopy(renderer, trigerredBomb, NULL,&fillRect);
-            else SDL_RenderCopy(renderer, bomb, NULL,&fillRect);
+            if (xi == trigerredX && yi == trigerredY) SDL_RenderCopy(renderer, pic[trigerredBomb], NULL,&fillRect);
+            else SDL_RenderCopy(renderer, pic[bomb], NULL,&fillRect);
         }
         else {
             int cntBombs = countBombs(xi,yi);
@@ -238,16 +215,16 @@ void Solve(SDL_Rect &RestartRect, SDL_Rect &playField) {
 
 void OnePlayer(SDL_Rect &RestartRect, SDL_Rect &playField) {
     board.drawBoard(renderer, playField);
-    SDL_RenderCopy(renderer, RestartButton, NULL, &RestartRect);
-    SDL_RenderCopy(renderer, menu, NULL, &MenuRect);
+    SDL_RenderCopy(renderer, pic[RestartButton], NULL, &RestartRect);
+    SDL_RenderCopy(renderer, pic[menu], NULL, &MenuRect);
 
     if (board.numNotBombs <= 0 && winningShowUp == 0) winningShowUp = 5;
 
     if (winningShowUp!=0) {
         if (winningShowUp > 0 && winningOpacity < 255) winningOpacity += winningShowUp;
         if (winningShowUp < 0 && winningOpacity > 0) winningOpacity += winningShowUp;
-        SDL_SetTextureAlphaMod(winning, winningOpacity);
-        SDL_RenderCopy(renderer, winning, NULL, &playField);
+        SDL_SetTextureAlphaMod(pic[winning], winningOpacity);
+        SDL_RenderCopy(renderer, pic[winning], NULL, &playField);
     }
 }
 

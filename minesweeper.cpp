@@ -8,8 +8,8 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = 720;
-const int SCREEN_HEIGHT = 680;
+const int SCREEN_WIDTH = 960;
+const int SCREEN_HEIGHT = 640;
 const string WINDOW_TITLE = "Haachamachama!!!";
 
 //------------------------------------------ ¯\_(ツ)_/¯ ---------------------------------------------
@@ -30,6 +30,17 @@ void waitUntilKeyPressed()
     }
 }
 
+bool isIn(int x1,int y1,int x2,int y2) {
+    int x,y;
+    SDL_GetMouseState(&x,&y);
+    if (x1<x && x<x2 && y1<y && y<y2) return true;
+    return false;
+}
+
+bool isInSDLRect(SDL_Rect rect) {
+    return isIn(rect.x, rect.y, rect.x+rect.w, rect.y + rect.h);
+}
+
 //----------------------------------------- SDL preparations -------------------------------------------
 
 SDL_Window* window;
@@ -41,12 +52,17 @@ bool MouseIsDown = false;
 enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu} ;
 string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu"};
 
+enum screenState {menuScreen, onePlayerScreen};
+int current_state = onePlayerScreen;
+
 SDL_Texture* numbers[10];
 SDL_Texture* pic[6];
 
 
 BOARD board;
 
+SDL_Rect playField;
+SDL_Rect RestartRect;
 SDL_Rect MenuRect;
 
 bool quit = false;
@@ -86,17 +102,10 @@ bool loadMedia()
 
 //----------------------------------- real coding part -----------------------------------------------------------------------------------
 
-bool isIn(int x1,int y1,int x2,int y2) {
-    int x,y;
-    SDL_GetMouseState(&x,&y);
-    if (x1<x && x<x2 && y1<y && y<y2) return true;
-    return false;
-}
+void restart1p() {
 
-void restart1p(SDL_Rect &playField, SDL_Rect &RestartRect) {
-
-    board.Rows = 24 ;
-    board.Cols = 30 ;
+    board.Rows = 27 ;
+    board.Cols = 48 ;
     board.squareSize = SCREEN_WIDTH/board.Cols;
     // board.disFromTop = SCREEN_HEIGHT - board.Rows * board.squareSize;
     playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
@@ -148,7 +157,7 @@ void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,
 
 //--------------------------------------------- event-related ---------------------------------------------------
 
-bool restartOrNot(SDL_Rect RestartRect, int x,int y) {
+bool restartOrNot(int x,int y) {
     int x1,x2,y1,y2;
     x1 = RestartRect.x;
     y1 = RestartRect.y;
@@ -157,9 +166,7 @@ bool restartOrNot(SDL_Rect RestartRect, int x,int y) {
     return (x1<=x && x<=x2 && y1<=y && y<=y2);
 }
 
-
-
-void Solve(SDL_Rect &RestartRect, SDL_Rect &playField) {
+void board_event_handling() {
     if (e.type == SDL_MOUSEBUTTONUP) {
         int x,y;
         SDL_GetMouseState(&x,&y);
@@ -190,11 +197,7 @@ void Solve(SDL_Rect &RestartRect, SDL_Rect &playField) {
             } else {
                 winningShowUp = 0-winningShowUp;
             }
-                
-        } else {
-            if (restartOrNot(RestartRect,x,y)) restart1p(playField, RestartRect);
         }
-            
     }
     if (e.button.clicks == 2) {
         // cout << "fuck " ;
@@ -213,7 +216,7 @@ void Solve(SDL_Rect &RestartRect, SDL_Rect &playField) {
     }
 }
 
-void OnePlayer(SDL_Rect &RestartRect, SDL_Rect &playField) {
+void OnePlayer() {
     board.drawBoard(renderer, playField);
     SDL_RenderCopy(renderer, pic[RestartButton], NULL, &RestartRect);
     SDL_RenderCopy(renderer, pic[menu], NULL, &MenuRect);
@@ -227,6 +230,20 @@ void OnePlayer(SDL_Rect &RestartRect, SDL_Rect &playField) {
         SDL_RenderCopy(renderer, pic[winning], NULL, &playField);
     }
 }
+
+void event_handling() {
+    if (isInSDLRect(playField)) {
+        board_event_handling();
+    }
+    else {
+        if (isInSDLRect(RestartRect)) restart1p();
+        else if (isInSDLRect(MenuRect)) {
+            current_state = menuScreen;
+        }
+    }
+}
+
+
 
 //------------------------------------------------- main ---------------------------------------------------
 
@@ -252,10 +269,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     //----------------------------------------------------------------------------------------------
 
 
-    SDL_Rect RestartRect;
-    SDL_Rect playField;
-
-    restart1p(playField, RestartRect);
+    restart1p();
     // board.unReset();
 
     while (!quit) {
@@ -266,10 +280,11 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             }
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
-            Solve(RestartRect, playField);
+            event_handling();
+            if (current_state == onePlayerScreen) OnePlayer();
         }
 
-        OnePlayer(RestartRect, playField);
+        // OnePlayer();
 
         SDL_RenderPresent(renderer);
     }

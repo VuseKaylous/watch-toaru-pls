@@ -1,16 +1,53 @@
 #include<iostream>
+#include<vector>
 #include<ctime>
 #include<SDL.h>
 #include<SDL_image.h>
-// #include "SDL_ttf.h"
+#include<SDL_ttf.h>
 #include "sora.h"
 #include "rushia.h"
+#include "loadTexture.h"
 
 using namespace std;
 
 const int SCREEN_WIDTH = 960;
 const int SCREEN_HEIGHT = 640;
 const string WINDOW_TITLE = "Haachamachama!!!";
+
+SDL_Window* window;
+SDL_Renderer* renderer;
+// SDL_Surface* screen ;
+SDL_Event e;
+TTF_Font *gFont = NULL;
+
+BOARD board;
+
+enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu} ;
+string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu"};
+int picCharSize = 6;
+SDL_Texture* pic[6];
+
+enum screenState {menuScreen, onePlayerScreen};
+int current_state = onePlayerScreen;
+
+bool MouseIsDown = false;
+SDL_Texture* numbers[10];
+
+
+enum listMenu {NewGame, Exit};
+string listMenuName[] = {"New game", "Exit"} ;
+int listMenuSize = 2;
+LTexture listMenuTexture[2];
+
+SDL_Rect playField;
+SDL_Rect RestartRect;
+SDL_Rect MenuRect;
+
+bool quit = false;
+float winningOpacity = 0;
+float winningShowUp = 0;
+
+// time_t startTime,endTime;
 
 //------------------------------------------ ¯\_(ツ)_/¯ ---------------------------------------------
 
@@ -41,35 +78,16 @@ bool isInSDLRect(SDL_Rect rect) {
     return isIn(rect.x, rect.y, rect.x+rect.w, rect.y + rect.h);
 }
 
+bool restartOrNot(int x,int y) {
+    int x1,x2,y1,y2;
+    x1 = RestartRect.x;
+    y1 = RestartRect.y;
+    x2 = x1 + RestartRect.w;
+    y2 = y1 + RestartRect.h;
+    return (x1<=x && x<=x2 && y1<=y && y<=y2);
+}
+
 //----------------------------------------- SDL preparations -------------------------------------------
-
-SDL_Window* window;
-SDL_Renderer* renderer;
-// SDL_Surface* screen ;
-SDL_Event e;
-bool MouseIsDown = false;
-
-enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu} ;
-string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu"};
-
-enum screenState {menuScreen, onePlayerScreen};
-int current_state = onePlayerScreen;
-
-SDL_Texture* numbers[10];
-SDL_Texture* pic[6];
-
-
-BOARD board;
-
-SDL_Rect playField;
-SDL_Rect RestartRect;
-SDL_Rect MenuRect;
-
-bool quit = false;
-float winningOpacity = 0;
-float winningShowUp = 0;
-
-// time_t startTime,endTime;
 
 bool loadMedia()
 {
@@ -97,6 +115,31 @@ bool loadMedia()
         }
     }
 
+    gFont = TTF_OpenFont( "fonts/lazy.ttf", 28 );
+    if( gFont == NULL )
+    {
+        printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
+        success = false;
+    }
+    else
+    {
+        //Render text
+        SDL_Color textColor = { 0, 0, 0 };
+        for (int i=0;i<listMenuSize;i++) {
+            // listMenuTexture[i] = loadFromRenderedText(listMenuName[i], textColor, renderer, gFont);
+            if (!listMenuTexture[i].loadFromRenderedText(listMenuName[i], textColor, renderer, gFont)) {
+                cout << "Failed to load texture " << listMenuName[i] << "\n" ;
+                success = false;
+                break;
+            }
+        }
+        // if( !gTextTexture.loadFromRenderedText( "The quick brown fox jumps over the lazy dog", textColor ) )
+        // {
+        //     printf( "Failed to render text texture!\n" );
+        //     success = false;
+        // }
+    }
+
     return success;
 }
 
@@ -122,49 +165,10 @@ void restart1p() {
     // cout << board.numNotBombs << "\n" ;
 }
 
-//---------------------------------------- board-related -----------------------------------------
-
-void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi) {
-    SDL_Rect fillRect = { x, y, w, h };
-    if (cover[xi][yi]) {
-        if (isIn(x,y,x+w,y+h)) { // hovering
-            if (MouseIsDown) SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
-            else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 255);
-        }
-        else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
-        SDL_RenderFillRect( renderer, &fillRect );
-        if (flagged[xi][yi]) {
-            SDL_RenderCopy(renderer, pic[flag], NULL, &fillRect);
-        }
-    }
-    else {
-        if (isBomb[xi][yi]) {
-            if (xi == trigerredX && yi == trigerredY) SDL_RenderCopy(renderer, pic[trigerredBomb], NULL,&fillRect);
-            else SDL_RenderCopy(renderer, pic[bomb], NULL,&fillRect);
-        }
-        else {
-            int cntBombs = countBombs(xi,yi);
-            if (cntBombs>0) {
-                SDL_RenderCopy( renderer, numbers[cntBombs], NULL, &fillRect );
-            } else {
-                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-                SDL_RenderFillRect( renderer, &fillRect );
-            }
-        }
-    }
-    
-}
 
 //--------------------------------------------- event-related ---------------------------------------------------
 
-bool restartOrNot(int x,int y) {
-    int x1,x2,y1,y2;
-    x1 = RestartRect.x;
-    y1 = RestartRect.y;
-    x2 = x1 + RestartRect.w;
-    y2 = y1 + RestartRect.h;
-    return (x1<=x && x<=x2 && y1<=y && y<=y2);
-}
+//------------------------------------ one-player-related --------------------------------------
 
 void board_event_handling() {
     if (e.type == SDL_MOUSEBUTTONUP) {
@@ -231,15 +235,46 @@ void OnePlayer() {
     }
 }
 
+//----------------------------------------- menu-related ------------------------------------------
+
+void drawingMenu() {
+    // gTextTexture.render( ( SCREEN_WIDTH - gTextTexture.getWidth() ) / 2, ( SCREEN_HEIGHT - gTextTexture.getHeight() ) / 2 );
+    int maxWidth = 0;
+    for (int i=0;i<listMenuSize;i++) {
+        maxWidth = max(maxWidth, listMenuTexture[i].width);
+    }
+    int topLeftX, topLeftY;
+    if (listMenuSize%2==0) {
+        topLeftY = SCREEN_HEIGHT/2 - (listMenuTexture[0].height + 20)*(listMenuSize/2)+10;
+    } else {
+        topLeftY = SCREEN_HEIGHT/2 - (listMenuTexture[0].height + 20)*(listMenuSize/2) - listMenuTexture[0].height/2;
+    }
+    for (int i=0;i<listMenuSize;i++) {
+        SDL_Rect fillRect = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + listMenuTexture[i].height), maxWidth, listMenuTexture[i].height};
+        listMenuTexture[i].render(fillRect, renderer);
+    }
+}
+
 void event_handling() {
-    if (isInSDLRect(playField)) {
-        board_event_handling();
+    if (current_state == onePlayerScreen) {
+        if (isInSDLRect(playField)) {
+            board_event_handling();
+        }
+        else {
+            if (isInSDLRect(RestartRect)) {
+                if (MouseIsDown) restart1p();
+            }
+            else if (isInSDLRect(MenuRect)) {
+                if (MouseIsDown) {
+                    current_state = menuScreen;
+                    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+                    SDL_RenderClear(renderer);
+                }
+            }
+        }
     }
     else {
-        if (isInSDLRect(RestartRect)) restart1p();
-        else if (isInSDLRect(MenuRect)) {
-            current_state = menuScreen;
-        }
+
     }
 }
 
@@ -281,10 +316,17 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
             event_handling();
-            if (current_state == onePlayerScreen) OnePlayer();
+            switch (current_state) {
+                case menuScreen:
+                    drawingMenu();
+                    break;
+                case onePlayerScreen:
+                    OnePlayer();
+                    break;
+                
+            }
+            // if (current_state == onePlayerScreen) OnePlayer();
         }
-
-        // OnePlayer();
 
         SDL_RenderPresent(renderer);
     }
@@ -297,4 +339,36 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     quitSDL(window, renderer);
     return 0;
 
+}
+
+//---------------------------------------- board-related -----------------------------------------
+
+void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi) {
+    SDL_Rect fillRect = { x, y, w, h };
+    if (cover[xi][yi]) {
+        if (isIn(x,y,x+w,y+h)) { // hovering
+            if (MouseIsDown) SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
+            else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 255);
+        }
+        else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
+        SDL_RenderFillRect( renderer, &fillRect );
+        if (flagged[xi][yi]) {
+            SDL_RenderCopy(renderer, pic[flag], NULL, &fillRect);
+        }
+    }
+    else {
+        if (isBomb[xi][yi]) {
+            if (xi == trigerredX && yi == trigerredY) SDL_RenderCopy(renderer, pic[trigerredBomb], NULL,&fillRect);
+            else SDL_RenderCopy(renderer, pic[bomb], NULL,&fillRect);
+        }
+        else {
+            int cntBombs = countBombs(xi,yi);
+            if (cntBombs>0) {
+                SDL_RenderCopy( renderer, numbers[cntBombs], NULL, &fillRect );
+            } else {
+                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+                SDL_RenderFillRect( renderer, &fillRect );
+            }
+        }
+    }
 }

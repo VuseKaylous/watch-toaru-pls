@@ -1,6 +1,7 @@
 #include<iostream>
 #include<SDL.h>
 #include<SDL_image.h>
+#include<SDL_ttf.h>
 #include "sora.h"
 using namespace std;
 
@@ -28,6 +29,13 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int
         logSDLError(std::cout, "SDL_Img_Init", true);
     }
 
+    if( TTF_Init() == -1 )
+    {
+        logSDLError(std::cout, "SDL_ttf_Init", true);
+        // printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
+        // success = false;
+    }
+
     window = SDL_CreateWindow(WINDOW_TITLE.c_str(), SDL_WINDOWPOS_CENTERED,
        SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     //window = SDL_CreateWindow(WINDOW_TITLE.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -51,6 +59,10 @@ void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
 {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    window = NULL;
+    renderer = NULL;
+    TTF_Quit();
+    IMG_Quit();
     SDL_Quit();
 }
 

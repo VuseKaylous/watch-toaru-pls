@@ -65,6 +65,6 @@ void LTexture::render(SDL_Rect pos, SDL_Renderer* renderer) {
 	int midX = pos.x + pos.w/2;
 	int midY = pos.y + pos.h/2;
 
-	SDL_Rect fillRect = {midX - width/2, pos.y, width, height};
+	SDL_Rect fillRect = {midX - width/2, midY - height/2, width, height};
 	SDL_RenderCopy(renderer, mTexture, NULL, &fillRect);
 }

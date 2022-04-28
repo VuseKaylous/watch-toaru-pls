@@ -22,10 +22,15 @@ TTF_Font *gFont = NULL;
 
 BOARD board;
 
-enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu} ;
-string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu"};
-int picCharSize = 6;
-SDL_Texture* pic[6];
+enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu, menuBackground} ;
+string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu", "menuBackground.jpg"};
+int picCharSize = 7;
+SDL_Texture* pic[7];
+
+// enum oNePlAyErBackground {}
+string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
+int onePlayerBackgroundSize = 4, onePlayerChosenBackground;
+SDL_Texture* onePlayerBackgroundTexture[4];
 
 enum screenState {menuScreen, onePlayerScreen};
 int current_state = onePlayerScreen;
@@ -34,10 +39,11 @@ bool MouseIsDown = false;
 SDL_Texture* numbers[10];
 
 
-enum listMenu {NewGame, Exit};
-string listMenuName[] = {"New game", "Exit"} ;
-int listMenuSize = 2;
-LTexture listMenuTexture[2];
+enum listMenu {Continue, NewGame, Exit};
+string listMenuName[] = {"Continue", "New game", "Exit"} ;
+int listMenuSize = 3;
+LTexture listMenuTexture[3];
+SDL_Rect MenuRects[3];
 
 SDL_Rect playField;
 SDL_Rect RestartRect;
@@ -53,7 +59,7 @@ float winningShowUp = 0;
 
 void waitUntilKeyPressed()
 {
-    SDL_Event e;
+    // SDL_Event e;
     while (true) {
         if ( SDL_WaitEvent(&e) != 0 ) {
             if (e.type == SDL_QUIT) return;
@@ -105,11 +111,24 @@ bool loadMedia()
             break;
         }
     }
-    for (int i=0;i<6;i++) {
-        string si = loadingPictures + picChar[i] + ".png";
+    for (int i=0;i<7;i++) {
+        string si;
+        if (i<6) si = loadingPictures + picChar[i] + ".png";
+        else si = loadingPictures + picChar[i] ;
         pic[i] = loadSurface(si,renderer);
         if (pic[i] == NULL) {
             cout << "Failed to load image " << picChar[i] << "\n" ;
+            success = false;
+            break;
+        }
+    }
+    loadingPictures = "picture/background_material/AH/";
+    for (int i=0;i<onePlayerBackgroundSize;i++) {
+        string si;
+        si = loadingPictures + onePlayerBackground[i] ;
+        onePlayerBackgroundTexture[i] = loadSurface(si,renderer);
+        if (onePlayerBackgroundTexture[i] == NULL) {
+            cout << "Failed to load image " << onePlayerBackground[i] << "\n" ;
             success = false;
             break;
         }
@@ -133,17 +152,12 @@ bool loadMedia()
                 break;
             }
         }
-        // if( !gTextTexture.loadFromRenderedText( "The quick brown fox jumps over the lazy dog", textColor ) )
-        // {
-        //     printf( "Failed to render text texture!\n" );
-        //     success = false;
-        // }
     }
 
     return success;
 }
 
-//----------------------------------- real coding part -----------------------------------------------------------------------------------
+//------------------------------------------------------------ real coding part ----------------------------------------------------------
 
 void restart1p() {
 
@@ -156,6 +170,8 @@ void restart1p() {
     RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
     MenuRect = {playField.y/4, playField.y/4, playField.y, playField.y/2};
     board.reset();
+
+    onePlayerChosenBackground = rand() % onePlayerBackgroundSize;
 
     winningOpacity = 0;
     winningShowUp = 0;
@@ -221,6 +237,7 @@ void board_event_handling() {
 }
 
 void OnePlayer() {
+    SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackground], NULL, &playField);
     board.drawBoard(renderer, playField);
     SDL_RenderCopy(renderer, pic[RestartButton], NULL, &RestartRect);
     SDL_RenderCopy(renderer, pic[menu], NULL, &MenuRect);
@@ -237,23 +254,57 @@ void OnePlayer() {
 
 //----------------------------------------- menu-related ------------------------------------------
 
+void menu_event_handling() {
+    if (e.type == SDL_MOUSEBUTTONUP) {
+        // int x,y;
+        // SDL_GetMouseState(&x,&y);
+        for (int i=0;i<listMenuSize;i++) {
+            // SDL_Rect fillRect = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + maxHeight), maxWidth, maxHeight};
+            if (isInSDLRect(MenuRects[i])) {
+                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+                SDL_RenderClear(renderer);
+                switch (i) {
+                    case Continue:
+                        current_state = onePlayerScreen ;
+                        break;
+                    case NewGame :
+                        current_state = onePlayerScreen ;
+                        restart1p() ;
+                        break;
+                    case Exit :
+                        quit = true;
+                        break;
+                }
+                break;
+            }
+        }
+    }
+}
+
 void drawingMenu() {
+    SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
     // gTextTexture.render( ( SCREEN_WIDTH - gTextTexture.getWidth() ) / 2, ( SCREEN_HEIGHT - gTextTexture.getHeight() ) / 2 );
-    int maxWidth = 0;
+    int maxWidth = 0, maxHeight;
     for (int i=0;i<listMenuSize;i++) {
         maxWidth = max(maxWidth, listMenuTexture[i].width);
     }
+    maxHeight = listMenuTexture[0].height*2;
+    maxWidth += maxHeight;
     int topLeftX, topLeftY;
     if (listMenuSize%2==0) {
-        topLeftY = SCREEN_HEIGHT/2 - (listMenuTexture[0].height + 20)*(listMenuSize/2)+10;
+        topLeftY = SCREEN_HEIGHT/2 - (maxHeight + 20)*(listMenuSize/2)+10;
     } else {
-        topLeftY = SCREEN_HEIGHT/2 - (listMenuTexture[0].height + 20)*(listMenuSize/2) - listMenuTexture[0].height/2;
+        topLeftY = SCREEN_HEIGHT/2 - (maxHeight + 20)*(listMenuSize/2) - maxHeight/2;
     }
     for (int i=0;i<listMenuSize;i++) {
-        SDL_Rect fillRect = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + listMenuTexture[i].height), maxWidth, listMenuTexture[i].height};
-        listMenuTexture[i].render(fillRect, renderer);
+        MenuRects[i] = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + maxHeight), maxWidth, maxHeight};
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderDrawRect(renderer, &MenuRects[i]);
+        listMenuTexture[i].render(MenuRects[i], renderer);
     }
 }
+
+//------------------------------------- central-event-handling -----------------------------------------------
 
 void event_handling() {
     if (current_state == onePlayerScreen) {
@@ -262,10 +313,10 @@ void event_handling() {
         }
         else {
             if (isInSDLRect(RestartRect)) {
-                if (MouseIsDown) restart1p();
+                if (e.type == SDL_MOUSEBUTTONUP) restart1p();
             }
             else if (isInSDLRect(MenuRect)) {
-                if (MouseIsDown) {
+                if (e.type == SDL_MOUSEBUTTONUP) {
                     current_state = menuScreen;
                     SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
                     SDL_RenderClear(renderer);
@@ -274,11 +325,9 @@ void event_handling() {
         }
     }
     else {
-
+        menu_event_handling();
     }
 }
-
-
 
 //------------------------------------------------- main ---------------------------------------------------
 
@@ -341,7 +390,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
 }
 
-//---------------------------------------- board-related -----------------------------------------
+//--------------------------------------------------------- board-related -----------------------------------------------------------
 
 void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi) {
     SDL_Rect fillRect = { x, y, w, h };
@@ -349,10 +398,12 @@ void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,
         if (isIn(x,y,x+w,y+h)) { // hovering
             if (MouseIsDown) SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
             else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 255);
+            SDL_RenderFillRect( renderer, &fillRect );
         }
-        else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
-        SDL_RenderFillRect( renderer, &fillRect );
+        // else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
+        
         if (flagged[xi][yi]) {
+
             SDL_RenderCopy(renderer, pic[flag], NULL, &fillRect);
         }
     }

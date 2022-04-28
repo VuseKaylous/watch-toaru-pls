@@ -13,7 +13,8 @@ const int xi[]={1,1,1,0,0,-1,-1,-1}, yi[]={-1,0,1,-1,1,-1,0,1} ;
 
 struct BOARD {
     bool cover[N][N], isBomb[N][N], flagged[N][N]; // 10x10, 16x16, 30x16
-    int Rows, Cols, squareSize, disFromTop, numNotBombs, trigerredX, trigerredY;
+    int Rows, Cols, squareSize, disFromTop, numNotBombs, trigerredX, trigerredY, difficulty;
+    BOARD();
     void reset() ;
     void unReset() ;
     int countBombs(int x,int y) ;

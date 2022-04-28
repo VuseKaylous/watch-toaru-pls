@@ -1,12 +1,16 @@
 #include"rushia.h"
 
 
+BOARD::BOARD() {
+    difficulty = 8;
+}
+
 void BOARD::reset() {
     // memset(cover,0,sizeof(cover));
     memset(isBomb,0,sizeof(isBomb));
     memset(flagged,0,sizeof(flagged));
     for (int i=0;i<Rows;i++) for (int j=0;j<Cols;j++) cover[i][j] = true;
-    int numBombs = Rows*Cols/8;
+    int numBombs = Rows*Cols/difficulty;
     // int numBombs = 1;
     int notBombs = Rows*Cols - numBombs;
     numNotBombs = notBombs;

@@ -1,6 +1,17 @@
 #include"rushia.h"
 
 
+void setHard() {
+
+}
+void setMedium() {
+
+}
+void setEasy() {
+    
+}
+
+
 BOARD::BOARD() {
     difficulty = 8;
 }

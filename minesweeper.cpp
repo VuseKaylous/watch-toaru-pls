@@ -32,18 +32,22 @@ string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
 int onePlayerBackgroundSize = 4, onePlayerChosenBackground;
 SDL_Texture* onePlayerBackgroundTexture[4];
 
-enum screenState {menuScreen, onePlayerScreen};
-int current_state = onePlayerScreen;
+enum screenState {menuScreen, onePlayerScreen, settingScreen};
+int current_state = menuScreen;
 
 bool MouseIsDown = false;
 SDL_Texture* numbers[10];
 
 
-enum listMenu {Continue, NewGame, Exit};
-string listMenuName[] = {"Continue", "New game", "Exit"} ;
-int listMenuSize = 3;
-LTexture listMenuTexture[3];
-SDL_Rect MenuRects[3];
+enum listMenu {Continue, NewGame, Settings, Exit};
+string listMenuName[] = {"Continue", "New game", "Settings", "Exit"} ;
+int listMenuSize = 4;
+LTexture listMenuTexture[4];
+SDL_Rect MenuRects[4];
+
+string listSettingName[1][4] = {"Difficulty:", "Easy", "Medium", "Hard"} ;
+LTexture listSettingTexture[1][4];
+SDL_Rect listSettingRects[1][4];
 
 SDL_Rect playField;
 SDL_Rect RestartRect;
@@ -143,11 +147,18 @@ bool loadMedia()
     else
     {
         //Render text
-        SDL_Color textColor = { 0, 0, 0 };
+        SDL_Color textColor = { 255, 255, 255 };
         for (int i=0;i<listMenuSize;i++) {
             // listMenuTexture[i] = loadFromRenderedText(listMenuName[i], textColor, renderer, gFont);
             if (!listMenuTexture[i].loadFromRenderedText(listMenuName[i], textColor, renderer, gFont)) {
                 cout << "Failed to load texture " << listMenuName[i] << "\n" ;
+                success = false;
+                break;
+            }
+        }
+        for (int i=0;i<4;i++) {
+            if (!listSettingTexture[0][i].loadFromRenderedText(listSettingName[0][i], textColor, renderer, gFont)) {
+                cout << "Failed to load texture " << listSettingName[0][i] << "\n" ;
                 success = false;
                 break;
             }
@@ -271,6 +282,9 @@ void menu_event_handling() {
                         current_state = onePlayerScreen ;
                         restart1p() ;
                         break;
+                    case Settings :
+                        current_state = settingScreen ;
+                        break;
                     case Exit :
                         quit = true;
                         break;
@@ -281,9 +295,7 @@ void menu_event_handling() {
     }
 }
 
-void drawingMenu() {
-    SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
-    // gTextTexture.render( ( SCREEN_WIDTH - gTextTexture.getWidth() ) / 2, ( SCREEN_HEIGHT - gTextTexture.getHeight() ) / 2 );
+void settingUpMenu() {
     int maxWidth = 0, maxHeight;
     for (int i=0;i<listMenuSize;i++) {
         maxWidth = max(maxWidth, listMenuTexture[i].width);
@@ -298,9 +310,41 @@ void drawingMenu() {
     }
     for (int i=0;i<listMenuSize;i++) {
         MenuRects[i] = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + maxHeight), maxWidth, maxHeight};
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    }
+}
+
+void drawingMenu() {
+    SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
+    for (int i=0;i<listMenuSize;i++) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawRect(renderer, &MenuRects[i]);
         listMenuTexture[i].render(MenuRects[i], renderer);
+    }
+}
+
+//------------------------------------- setting-related ---------------------------------------
+
+void settingUpSettings() {
+    int x,y;
+    y = listSettingTexture[0][0].height*2;
+    x = y;
+    for (int i=0;i<1;i++) {
+        for (int j=0;j<4;j++) {
+            listSettingRects[i][j] = {x, y, listSettingTexture[i][j].width + listSettingTexture[i][j].height, listSettingTexture[i][j].height*2};
+            x += listSettingRects[i][j].w + 30;
+        }
+        y += listSettingRects[i][0].h + 30 ;
+    }
+}
+
+void drawingSetting() {
+    SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
+    for (int i=0;i<1;i++) {
+        for (int j=0;j<4;j++) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderDrawRect(renderer, &listSettingRects[i][j]);
+            listSettingTexture[i][j].render(listSettingRects[i][j], renderer);
+        }
     }
 }
 
@@ -324,8 +368,11 @@ void event_handling() {
             }
         }
     }
-    else {
+    else if (current_state == menuScreen) {
         menu_event_handling();
+    }
+    else if (current_state == settingScreen) {
+
     }
 }
 
@@ -352,7 +399,8 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
     //----------------------------------------------------------------------------------------------
 
-
+    settingUpMenu();
+    settingUpSettings();
     restart1p();
     // board.unReset();
 
@@ -371,6 +419,9 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
                     break;
                 case onePlayerScreen:
                     OnePlayer();
+                    break;
+                case settingScreen:
+                    drawingSetting();
                     break;
                 
             }

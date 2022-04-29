@@ -7,6 +7,7 @@
 #include "sora.h"
 #include "rushia.h"
 #include "loadTexture.h"
+#include "aloe.h"
 
 using namespace std;
 
@@ -21,16 +22,19 @@ SDL_Event e;
 TTF_Font *gFont = NULL;
 
 BOARD board;
+int chosenDifficulty = 1;
 
 enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu, menuBackground} ;
 string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu", "menuBackground.jpg"};
 int picCharSize = 7;
 SDL_Texture* pic[7];
 
-// enum oNePlAyErBackground {}
 string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
 int onePlayerBackgroundSize = 4, onePlayerChosenBackground;
 SDL_Texture* onePlayerBackgroundTexture[4];
+
+int backGifs = 41, chosenBackPic;
+SDL_Texture* backButton[41];
 
 enum screenState {menuScreen, onePlayerScreen, settingScreen};
 int current_state = menuScreen;
@@ -48,6 +52,7 @@ SDL_Rect MenuRects[4];
 string listSettingName[1][4] = {"Difficulty:", "Easy", "Medium", "Hard"} ;
 LTexture listSettingTexture[1][4];
 SDL_Rect listSettingRects[1][4];
+const SDL_Rect backRect = {SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200, 200, 200};
 
 SDL_Rect playField;
 SDL_Rect RestartRect;
@@ -60,33 +65,6 @@ float winningShowUp = 0;
 // time_t startTime,endTime;
 
 //------------------------------------------ ¯\_(ツ)_/¯ ---------------------------------------------
-
-void waitUntilKeyPressed()
-{
-    // SDL_Event e;
-    while (true) {
-        if ( SDL_WaitEvent(&e) != 0 ) {
-            if (e.type == SDL_QUIT) return;
-            if (e.type == SDL_KEYDOWN) {
-                if (e.key.keysym.sym == SDLK_ESCAPE) return;
-            }
-        }
-             // (e.type == SDL_KEYDOWN || e.type == SDL_QUIT) )
-            // return;
-        SDL_Delay(100);
-    }
-}
-
-bool isIn(int x1,int y1,int x2,int y2) {
-    int x,y;
-    SDL_GetMouseState(&x,&y);
-    if (x1<x && x<x2 && y1<y && y<y2) return true;
-    return false;
-}
-
-bool isInSDLRect(SDL_Rect rect) {
-    return isIn(rect.x, rect.y, rect.x+rect.w, rect.y + rect.h);
-}
 
 bool restartOrNot(int x,int y) {
     int x1,x2,y1,y2;
@@ -137,6 +115,17 @@ bool loadMedia()
             break;
         }
     }
+    loadingPictures = "picture/SDL_image_related/back/";
+    for (int i=0;i<backGifs;i++) {
+        string si;
+        si = loadingPictures + toString(i) + ".png" ;
+        backButton[i] = loadSurface(si,renderer);
+        if (backButton[i] == NULL) {
+            cout << "Failed to load image back number " << i << "\n" ;
+            success = false;
+            break;
+        }
+    }
 
     gFont = TTF_OpenFont( "fonts/lazy.ttf", 28 );
     if( gFont == NULL )
@@ -171,9 +160,7 @@ bool loadMedia()
 //------------------------------------------------------------ real coding part ----------------------------------------------------------
 
 void restart1p() {
-
-    board.Rows = 27 ;
-    board.Cols = 48 ;
+    board.setDifficulty(chosenDifficulty);
     board.squareSize = SCREEN_WIDTH/board.Cols;
     // board.disFromTop = SCREEN_HEIGHT - board.Rows * board.squareSize;
     playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
@@ -190,6 +177,11 @@ void restart1p() {
     // startTime = time(0);
 
     // cout << board.numNotBombs << "\n" ;
+}
+
+void drawBackButton() {
+    chosenBackPic = (chosenBackPic+1)%(backGifs*2);
+    SDL_RenderCopy(renderer, backButton[chosenBackPic/2], NULL, &backRect);
 }
 
 
@@ -284,6 +276,7 @@ void menu_event_handling() {
                         break;
                     case Settings :
                         current_state = settingScreen ;
+                        chosenBackPic = 0;
                         break;
                     case Exit :
                         quit = true;
@@ -324,6 +317,22 @@ void drawingMenu() {
 
 //------------------------------------- setting-related ---------------------------------------
 
+void setting_event_handling() {
+    if (e.type == SDL_MOUSEBUTTONUP) {
+        for (int i=0;i<1;i++) {
+            for (int j=1;j<4;j++) {
+                if (isInSDLRect(listSettingRects[i][j])) {
+                    chosenDifficulty = j-1;
+                    restart1p();
+                }
+            }
+        }
+        if (isInSDLRect(backRect)) {
+            current_state = menuScreen ;
+        }
+    }
+}
+
 void settingUpSettings() {
     int x,y;
     y = listSettingTexture[0][0].height*2;
@@ -341,11 +350,14 @@ void drawingSetting() {
     SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
     for (int i=0;i<1;i++) {
         for (int j=0;j<4;j++) {
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            if (j>0 && isInSDLRect(listSettingRects[i][j])) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            else if (j-1 == chosenDifficulty) SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             SDL_RenderDrawRect(renderer, &listSettingRects[i][j]);
             listSettingTexture[i][j].render(listSettingRects[i][j], renderer);
         }
     }
+    drawBackButton();
 }
 
 //------------------------------------- central-event-handling -----------------------------------------------
@@ -372,7 +384,7 @@ void event_handling() {
         menu_event_handling();
     }
     else if (current_state == settingScreen) {
-
+        setting_event_handling();
     }
 }
 
@@ -386,7 +398,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     bool loadingSuccessfull = loadMedia();
     if (!loadingSuccessfull) {
         cout << "failed to load media" ;
-        waitUntilKeyPressed();
+        SDL_Delay(100);
         quitSDL(window,renderer);
         return 0;
     }
@@ -399,6 +411,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
     //----------------------------------------------------------------------------------------------
 
+    chosenDifficulty = 1;
     settingUpMenu();
     settingUpSettings();
     restart1p();
@@ -413,19 +426,19 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
             event_handling();
-            switch (current_state) {
-                case menuScreen:
-                    drawingMenu();
-                    break;
-                case onePlayerScreen:
-                    OnePlayer();
-                    break;
-                case settingScreen:
-                    drawingSetting();
-                    break;
-                
-            }
+            
             // if (current_state == onePlayerScreen) OnePlayer();
+        }
+        switch (current_state) {
+            case menuScreen:
+                drawingMenu();
+                break;
+            case onePlayerScreen:
+                OnePlayer();
+                break;
+            case settingScreen:
+                drawingSetting();
+                break;
         }
 
         SDL_RenderPresent(renderer);

@@ -15,9 +15,7 @@ struct BOARD {
     bool cover[N][N], isBomb[N][N], flagged[N][N]; // 10x10, 16x16, 30x16
     int Rows, Cols, squareSize, disFromTop, numNotBombs, trigerredX, trigerredY, difficulty;
     BOARD();
-    void setHard();
-    void setMedium();
-    void setEasy();
+    void setDifficulty(int chosenDifficulty);
     void reset() ;
     void unReset() ;
     int countBombs(int x,int y) ;

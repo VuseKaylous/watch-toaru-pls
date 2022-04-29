@@ -1,19 +1,28 @@
 #include"rushia.h"
 
 
-void setHard() {
-
+void BOARD::setDifficulty(int chosenDifficulty) {
+    switch (chosenDifficulty) {
+        case 0:
+            Rows = 18;
+            Cols = 32;
+            difficulty = 8;
+            break;
+        case 1:
+            Rows = 27;
+            Cols = 48;
+            difficulty = 8;
+            break;
+        case 2:
+            Rows = 27;
+            Cols = 48;
+            difficulty = 5;
+            break;
+    }
 }
-void setMedium() {
-
-}
-void setEasy() {
-    
-}
-
 
 BOARD::BOARD() {
-    difficulty = 8;
+    // setDifficulty(1);
 }
 
 void BOARD::reset() {

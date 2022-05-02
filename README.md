@@ -5,7 +5,8 @@ Quest:
 - create time counter
 + create simple menu
 - create fade menu
-- create difficulty
++ create difficulty
 - create 2-player mode?
 - decorate cursor
 + decorate board
+- decorate skin

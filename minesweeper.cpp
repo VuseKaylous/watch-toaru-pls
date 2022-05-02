@@ -30,8 +30,9 @@ int picCharSize = 7;
 SDL_Texture* pic[7];
 
 string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
-int onePlayerBackgroundSize = 4, onePlayerChosenBackground;
-SDL_Texture* onePlayerBackgroundTexture[4];
+int onePlayerBackgroundSize = 4, onePlayerChosenBackgroundX, onePlayerChosenBackgroundY;
+SDL_Texture* onePlayerBackgroundTexture[2][4];
+SDL_Texture* onePlayerBackgroundTextureGif[39];
 
 int backGifs = 41, chosenBackPic;
 SDL_Texture* backButton[41];
@@ -49,9 +50,9 @@ int listMenuSize = 4;
 LTexture listMenuTexture[4];
 SDL_Rect MenuRects[4];
 
-string listSettingName[1][4] = {"Difficulty:", "Easy", "Medium", "Hard"} ;
-LTexture listSettingTexture[1][4];
-SDL_Rect listSettingRects[1][4];
+string listSettingName[2][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}} ;
+LTexture listSettingTexture[2][4];
+SDL_Rect listSettingRects[2][4];
 const SDL_Rect backRect = {SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200, 200, 200};
 
 SDL_Rect playField;
@@ -108,9 +109,31 @@ bool loadMedia()
     for (int i=0;i<onePlayerBackgroundSize;i++) {
         string si;
         si = loadingPictures + onePlayerBackground[i] ;
-        onePlayerBackgroundTexture[i] = loadSurface(si,renderer);
-        if (onePlayerBackgroundTexture[i] == NULL) {
-            cout << "Failed to load image " << onePlayerBackground[i] << "\n" ;
+        onePlayerBackgroundTexture[0][i] = loadSurface(si,renderer);
+        if (onePlayerBackgroundTexture[0][i] == NULL) {
+            cout << "Failed to load image AH" << onePlayerBackground[i] << "\n" ;
+            success = false;
+            break;
+        }
+    }
+    loadingPictures = "picture/background_material/SS/";
+    for (int i=0;i<onePlayerBackgroundSize;i++) {
+        string si;
+        si = loadingPictures + onePlayerBackground[i] ;
+        onePlayerBackgroundTexture[1][i] = loadSurface(si,renderer);
+        if (onePlayerBackgroundTexture[1][i] == NULL) {
+            cout << "Failed to load image SS" << onePlayerBackground[i] << "\n" ;
+            success = false;
+            break;
+        }
+    }
+    loadingPictures = "picture/background_material/SS_gif/gifs/";
+    for (int i=0;i<39;i++) {
+        string si;
+        si = loadingPictures + toString(i) + ".gif" ;
+        onePlayerBackgroundTextureGif[i] = loadSurface(si,renderer);
+        if (onePlayerBackgroundTextureGif[i] == NULL) {
+            cout << "Failed to load image background gif" << i << "\n" ;
             success = false;
             break;
         }
@@ -145,11 +168,13 @@ bool loadMedia()
                 break;
             }
         }
-        for (int i=0;i<4;i++) {
-            if (!listSettingTexture[0][i].loadFromRenderedText(listSettingName[0][i], textColor, renderer, gFont)) {
-                cout << "Failed to load texture " << listSettingName[0][i] << "\n" ;
-                success = false;
-                break;
+        for (int j=0;j<2;j++) {
+            for (int i=0;i<4;i++) {
+                if (!listSettingTexture[j][i].loadFromRenderedText(listSettingName[j][i], textColor, renderer, gFont)) {
+                    cout << "Failed to load texture " << listSettingName[j][i] << "\n" ;
+                    success = false;
+                    break;
+                }
             }
         }
     }
@@ -169,7 +194,7 @@ void restart1p() {
     MenuRect = {playField.y/4, playField.y/4, playField.y, playField.y/2};
     board.reset();
 
-    onePlayerChosenBackground = rand() % onePlayerBackgroundSize;
+    onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;
 
     winningOpacity = 0;
     winningShowUp = 0;
@@ -240,7 +265,13 @@ void board_event_handling() {
 }
 
 void OnePlayer() {
-    SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackground], NULL, &playField);
+    // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
+    if (onePlayerChosenBackgroundX == 2) {
+        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
+        onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);
+    } else {
+        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
+    }
     board.drawBoard(renderer, playField);
     SDL_RenderCopy(renderer, pic[RestartButton], NULL, &RestartRect);
     SDL_RenderCopy(renderer, pic[menu], NULL, &MenuRect);
@@ -319,11 +350,15 @@ void drawingMenu() {
 
 void setting_event_handling() {
     if (e.type == SDL_MOUSEBUTTONUP) {
-        for (int i=0;i<1;i++) {
+        for (int i=0;i<2;i++) {
             for (int j=1;j<4;j++) {
                 if (isInSDLRect(listSettingRects[i][j])) {
-                    chosenDifficulty = j-1;
-                    restart1p();
+                    if (i==0) {
+                        chosenDifficulty = j-1;
+                        restart1p();
+                    } else {
+                        onePlayerChosenBackgroundX = j-1;
+                    }
                 }
             }
         }
@@ -337,22 +372,28 @@ void settingUpSettings() {
     int x,y;
     y = listSettingTexture[0][0].height*2;
     x = y;
-    for (int i=0;i<1;i++) {
+    for (int i=0;i<2;i++) {
         for (int j=0;j<4;j++) {
             listSettingRects[i][j] = {x, y, listSettingTexture[i][j].width + listSettingTexture[i][j].height, listSettingTexture[i][j].height*2};
             x += listSettingRects[i][j].w + 30;
         }
         y += listSettingRects[i][0].h + 30 ;
+        x = listSettingTexture[0][0].height*2;
     }
 }
 
 void drawingSetting() {
     SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
-    for (int i=0;i<1;i++) {
+    for (int i=0;i<2;i++) {
+        int chosenNumber ;
+        if (i==0) chosenNumber = chosenDifficulty;
+        if (i==1) chosenNumber = onePlayerChosenBackgroundX;
         for (int j=0;j<4;j++) {
             if (j>0 && isInSDLRect(listSettingRects[i][j])) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-            else if (j-1 == chosenDifficulty) SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-            else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            else {
+                if (j-1 == chosenNumber) SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            }
             SDL_RenderDrawRect(renderer, &listSettingRects[i][j]);
             listSettingTexture[i][j].render(listSettingRects[i][j], renderer);
         }
@@ -412,6 +453,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     //----------------------------------------------------------------------------------------------
 
     chosenDifficulty = 1;
+    onePlayerChosenBackgroundX = 0;
     settingUpMenu();
     settingUpSettings();
     restart1p();

@@ -5,9 +5,9 @@
 #include<SDL_image.h>
 #include<SDL_ttf.h>
 #include "sora.h"
+#include "aloe.h"
 #include "rushia.h"
 #include "loadTexture.h"
-#include "aloe.h"
 
 using namespace std;
 
@@ -24,10 +24,10 @@ TTF_Font *gFont = NULL;
 BOARD board;
 int chosenDifficulty = 1;
 
-enum png {bomb, flag, RestartButton, trigerredBomb, winning, menu, menuBackground} ;
-string picChar[] = {"bomb", "flag", "RestartButton", "trigerredBomb", "winning", "menu", "menuBackground.jpg"};
-int picCharSize = 7;
-SDL_Texture* pic[7];
+enum png {RestartButton, winning, menu, menuBackground} ;
+string picChar[] = {"RestartButton", "winning", "menu", "menuBackground.jpg"};
+int picCharSize = 4;
+SDL_Texture* pic[4];
 
 string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
 int onePlayerBackgroundSize = 4, onePlayerChosenBackgroundX, onePlayerChosenBackgroundY;
@@ -41,7 +41,6 @@ enum screenState {menuScreen, onePlayerScreen, settingScreen};
 int current_state = menuScreen;
 
 bool MouseIsDown = false;
-SDL_Texture* numbers[10];
 
 
 enum listMenu {Continue, NewGame, Settings, Exit};
@@ -81,22 +80,13 @@ bool restartOrNot(int x,int y) {
 bool loadMedia()
 {
     bool success = true;
-    //Load stretching surface
+    bool checkSuccess = board.loadRushia(renderer);
+    if (!checkSuccess) success = false;
+
     string loadingPictures = "picture/SDL_image_related/";
-    for (char i='0';i<='9';i++) {
-        string si = loadingPictures + i + ".png";
-        // loadingPictures[26] = i;
-        numbers[i-'0'] = loadSurface(si, renderer);
-        if (numbers[i-'0'] == NULL) {
-            // printf( "Failed to load image!\n" );
-            cout << "Failed to load image " << i << "\n" ;
-            success = false;
-            break;
-        }
-    }
-    for (int i=0;i<7;i++) {
+    for (int i=0;i<picCharSize;i++) {
         string si;
-        if (i<6) si = loadingPictures + picChar[i] + ".png";
+        if (i<picCharSize-1) si = loadingPictures + picChar[i] + ".png";
         else si = loadingPictures + picChar[i] ;
         pic[i] = loadSurface(si,renderer);
         if (pic[i] == NULL) {
@@ -272,7 +262,7 @@ void OnePlayer() {
     } else {
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
     }
-    board.drawBoard(renderer, playField);
+    board.drawBoard(renderer, playField, MouseIsDown);
     SDL_RenderCopy(renderer, pic[RestartButton], NULL, &RestartRect);
     SDL_RenderCopy(renderer, pic[menu], NULL, &MenuRect);
 
@@ -494,38 +484,4 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     quitSDL(window, renderer);
     return 0;
 
-}
-
-//--------------------------------------------------------- board-related -----------------------------------------------------------
-
-void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi) {
-    SDL_Rect fillRect = { x, y, w, h };
-    if (cover[xi][yi]) {
-        if (isIn(x,y,x+w,y+h)) { // hovering
-            if (MouseIsDown) SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
-            else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 255);
-            SDL_RenderFillRect( renderer, &fillRect );
-        }
-        // else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
-        
-        if (flagged[xi][yi]) {
-
-            SDL_RenderCopy(renderer, pic[flag], NULL, &fillRect);
-        }
-    }
-    else {
-        if (isBomb[xi][yi]) {
-            if (xi == trigerredX && yi == trigerredY) SDL_RenderCopy(renderer, pic[trigerredBomb], NULL,&fillRect);
-            else SDL_RenderCopy(renderer, pic[bomb], NULL,&fillRect);
-        }
-        else {
-            int cntBombs = countBombs(xi,yi);
-            if (cntBombs>0) {
-                SDL_RenderCopy( renderer, numbers[cntBombs], NULL, &fillRect );
-            } else {
-                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-                SDL_RenderFillRect( renderer, &fillRect );
-            }
-        }
-    }
 }

@@ -17,19 +17,7 @@ string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
 bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
     bool success = true;
     string loadingPictures = "picture/SDL_image_related/";
-    /*
-    for (int i=0;i<picCharSize;i++) {
-        string si;
-        if (i<picCharSize-1) si = loadingPictures + picChar[i] + ".png";
-        else si = loadingPictures + picChar[i] ;
-        pic[i] = loadSurface(si,renderer);
-        if (pic[i] == NULL) {
-            cout << "Failed to load image " << picChar[i] << "\n" ;
-            success = false;
-            break;
-        }
-    }
-    */
+
     loadingPictures = "picture/SDL_image_related/RestartButton.png";
     RestartButton = loadSurface(loadingPictures, renderer);
     if (RestartButton == NULL) success = false;
@@ -45,7 +33,7 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
     if (menu == NULL) success = false;
     // if (!success) logSDLError(cout, "menu", true);
     
-    /*
+    
     loadingPictures = "picture/background_material/AH/";
     for (int i=0;i<onePlayerBackgroundSize;i++) {
         string si;
@@ -57,7 +45,7 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
             break;
         }
     }
-    if (!success) logSDLError(cout, "AH", true);
+
     loadingPictures = "picture/background_material/SS/";
     for (int i=0;i<onePlayerBackgroundSize;i++) {
         string si;
@@ -69,7 +57,7 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
             break;
         }
     }
-    if (!success) logSDLError(cout, "SS", true);
+
     loadingPictures = "picture/background_material/SS_gif/gifs/";
     for (int i=0;i<39;i++) {
         string si;
@@ -81,8 +69,7 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
             break;
         }
     }
-    if (!success) logSDLError(cout, "SS_gif", true);
-    */
+    
     
     return success;
 }
@@ -156,10 +143,10 @@ void ONEPLAYER::board_event_handling(BOARD &board, SDL_Event e) {
 void ONEPLAYER::drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDown) {
     // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
     if (onePlayerChosenBackgroundX == 2) {
-        // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
+        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
         onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);
     } else {
-        // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
+        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
     }
     board.drawBoard(renderer, playField, MouseDown);
     SDL_RenderCopy(renderer, RestartButton, NULL, &RestartRect);

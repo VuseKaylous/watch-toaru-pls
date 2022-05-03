@@ -17,8 +17,8 @@ struct ONEPLAYER {
 private:
 	const int onePlayerBackgroundSize = 4;
 	
-	// SDL_Texture* onePlayerBackgroundTexture[2][4];
-	// SDL_Texture* onePlayerBackgroundTextureGif[39];
+	SDL_Texture* onePlayerBackgroundTexture[2][4];
+	SDL_Texture* onePlayerBackgroundTextureGif[39];
 	SDL_Texture *RestartButton, *winning, *menu;
 
 public:

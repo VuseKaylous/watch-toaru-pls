@@ -23,7 +23,7 @@ SDL_Event e;
 TTF_Font *gFont = NULL;
 
 BOARD board;
-// ONEPLAYER OnePlayer;
+ONEPLAYER OnePlayer;
 
 SDL_Texture *menuBackground;
 
@@ -61,8 +61,8 @@ bool loadMedia()
     bool checkSuccess = board.loadRushia(renderer);
     if (!checkSuccess) success = false;
     // cout << "fuck\n" ;
-    // checkSuccess = OnePlayer.loadOnePlayer(renderer);
-    // if (!checkSuccess) success = false;
+    checkSuccess = OnePlayer.loadOnePlayer(renderer);
+    if (!checkSuccess) success = false;
     string loadingPictures;
 
     loadingPictures = "picture/SDL_image_related/menuBackground.jpg";
@@ -117,13 +117,13 @@ bool loadMedia()
 
 void settingUpOnePerson() {
     board.squareSize = SCREEN_WIDTH/board.Cols;
-    // OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
-    // OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
-    // OnePlayer.MenuRect = {OnePlayer.playField.y/4, OnePlayer.playField.y/4, OnePlayer.playField.y, OnePlayer.playField.y/2};
+    OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
+    OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
+    OnePlayer.MenuRect = {OnePlayer.playField.y/4, OnePlayer.playField.y/4, OnePlayer.playField.y, OnePlayer.playField.y/2};
 }
 
 void drawOnePerson() {
-    // OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
+    OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
 }
 
 //----------------------------------------- menu-related ------------------------------------------
@@ -143,7 +143,7 @@ void menu_event_handling() {
                         break;
                     case NewGame :
                         current_state = onePlayerScreen ;
-                        // OnePlayer.restart1p(board) ;
+                        OnePlayer.restart1p(board) ;
                         break;
                     case Settings :
                         current_state = settingScreen ;
@@ -192,12 +192,12 @@ void setting_event_handling() {
     if (e.type == SDL_MOUSEBUTTONUP) {
         for (int i=0;i<2;i++) {
             for (int j=1;j<4;j++) {
-                if (isInSDLRect(listSettingRects[i][j])) {
+                if (isInSDLRect(listSettingRects[i][j]) && j>0) {
                     if (i==0) {
-                        // OnePlayer.chosenDifficulty = j-1;
-                        // OnePlayer.restart1p(board);
+                        OnePlayer.chosenDifficulty = j-1;
+                        OnePlayer.restart1p(board);
                     } else {
-                        // OnePlayer.onePlayerChosenBackgroundX = j-1;
+                        OnePlayer.onePlayerChosenBackgroundX = j-1;
                     }
                 }
             }
@@ -231,8 +231,8 @@ void drawingSetting() {
     SDL_RenderCopy(renderer, menuBackground, NULL, NULL);
     for (int i=0;i<2;i++) {
         int chosenNumber = 2;
-        // if (i==0) chosenNumber = OnePlayer.chosenDifficulty;
-        // if (i==1) chosenNumber = OnePlayer.onePlayerChosenBackgroundX;
+        if (i==0) chosenNumber = OnePlayer.chosenDifficulty;
+        if (i==1) chosenNumber = OnePlayer.onePlayerChosenBackgroundX;
         for (int j=0;j<4;j++) {
             if (j>0 && isInSDLRect(listSettingRects[i][j])) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             else {
@@ -250,21 +250,21 @@ void drawingSetting() {
 
 void event_handling() {
     if (current_state == onePlayerScreen) {
-        // if (isInSDLRect(OnePlayer.playField)) {
-        //     OnePlayer.board_event_handling(board, e);
-        // }
-        // else {
-        //     if (isInSDLRect(OnePlayer.RestartRect)) {
-        //         if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p(board);
-        //     }
-        //     else if (isInSDLRect(OnePlayer.MenuRect)) {
-        //         if (e.type == SDL_MOUSEBUTTONUP) {
-        //             current_state = menuScreen;
-        //             SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-        //             SDL_RenderClear(renderer);
-        //         }
-        //     }
-        // }
+        if (isInSDLRect(OnePlayer.playField)) {
+            OnePlayer.board_event_handling(board, e);
+        }
+        else {
+            if (isInSDLRect(OnePlayer.RestartRect)) {
+                if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p(board);
+            }
+            else if (isInSDLRect(OnePlayer.MenuRect)) {
+                if (e.type == SDL_MOUSEBUTTONUP) {
+                    current_state = menuScreen;
+                    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+                    SDL_RenderClear(renderer);
+                }
+            }
+        }
     }
     else if (current_state == menuScreen) {
         menu_event_handling();
@@ -279,13 +279,13 @@ void event_handling() {
 
 int main(int argc, char* argv[]) { // watch toaru pls :)
     srand(time(0));
-    // cout << "fuck\n" ;
+    cout << "fuck\n" ;
     initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
     // screen = SDL_GetWindowSurface(window);
     bool loadingSuccessfull = loadMedia();
     if (!loadingSuccessfull) {
         cout << "failed to load media" ;
-        SDL_Delay(2000);
+        // SDL_Delay(2000);
         quitSDL(window,renderer);
         return 0;
     }
@@ -299,10 +299,12 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
     //----------------------------------------------------------------------------------------------
 
     settingUpOnePerson();
+
     settingUpMenu();
     settingUpSettings();
-    // OnePlayer.restart1p(board);
+    OnePlayer.restart1p(board);
     // board.unReset();
+    
 
     while (!quit) {
         if (SDL_PollEvent(&e)!=0) {
@@ -313,8 +315,6 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
             event_handling();
-            
-            // if (current_state == onePlayerScreen) OnePlayer();
         }
         switch (current_state) {
             case menuScreen:

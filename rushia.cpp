@@ -57,7 +57,7 @@ void BOARD::setDifficulty(int chosenDifficulty) {
 }
 
 BOARD::BOARD() {
-    // setDifficulty(1);
+    setDifficulty(1);
 }
 
 void BOARD::reset() {

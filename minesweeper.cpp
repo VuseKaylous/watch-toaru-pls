@@ -8,6 +8,7 @@
 #include "aloe.h"
 #include "rushia.h"
 #include "loadTexture.h"
+#include "onePlayer.h"
 
 using namespace std;
 
@@ -22,17 +23,9 @@ SDL_Event e;
 TTF_Font *gFont = NULL;
 
 BOARD board;
-int chosenDifficulty = 1;
+// ONEPLAYER OnePlayer;
 
-enum png {RestartButton, winning, menu, menuBackground} ;
-string picChar[] = {"RestartButton", "winning", "menu", "menuBackground.jpg"};
-int picCharSize = 4;
-SDL_Texture* pic[4];
-
-string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
-int onePlayerBackgroundSize = 4, onePlayerChosenBackgroundX, onePlayerChosenBackgroundY;
-SDL_Texture* onePlayerBackgroundTexture[2][4];
-SDL_Texture* onePlayerBackgroundTextureGif[39];
+SDL_Texture *menuBackground;
 
 int backGifs = 41, chosenBackPic;
 SDL_Texture* backButton[41];
@@ -54,26 +47,11 @@ LTexture listSettingTexture[2][4];
 SDL_Rect listSettingRects[2][4];
 const SDL_Rect backRect = {SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200, 200, 200};
 
-SDL_Rect playField;
-SDL_Rect RestartRect;
-SDL_Rect MenuRect;
 
 bool quit = false;
-float winningOpacity = 0;
-float winningShowUp = 0;
 
 // time_t startTime,endTime;
 
-//------------------------------------------ ¯\_(ツ)_/¯ ---------------------------------------------
-
-bool restartOrNot(int x,int y) {
-    int x1,x2,y1,y2;
-    x1 = RestartRect.x;
-    y1 = RestartRect.y;
-    x2 = x1 + RestartRect.w;
-    y2 = y1 + RestartRect.h;
-    return (x1<=x && x<=x2 && y1<=y && y<=y2);
-}
 
 //----------------------------------------- SDL preparations -------------------------------------------
 
@@ -82,52 +60,15 @@ bool loadMedia()
     bool success = true;
     bool checkSuccess = board.loadRushia(renderer);
     if (!checkSuccess) success = false;
+    // cout << "fuck\n" ;
+    // checkSuccess = OnePlayer.loadOnePlayer(renderer);
+    // if (!checkSuccess) success = false;
+    string loadingPictures;
 
-    string loadingPictures = "picture/SDL_image_related/";
-    for (int i=0;i<picCharSize;i++) {
-        string si;
-        if (i<picCharSize-1) si = loadingPictures + picChar[i] + ".png";
-        else si = loadingPictures + picChar[i] ;
-        pic[i] = loadSurface(si,renderer);
-        if (pic[i] == NULL) {
-            cout << "Failed to load image " << picChar[i] << "\n" ;
-            success = false;
-            break;
-        }
-    }
-    loadingPictures = "picture/background_material/AH/";
-    for (int i=0;i<onePlayerBackgroundSize;i++) {
-        string si;
-        si = loadingPictures + onePlayerBackground[i] ;
-        onePlayerBackgroundTexture[0][i] = loadSurface(si,renderer);
-        if (onePlayerBackgroundTexture[0][i] == NULL) {
-            cout << "Failed to load image AH" << onePlayerBackground[i] << "\n" ;
-            success = false;
-            break;
-        }
-    }
-    loadingPictures = "picture/background_material/SS/";
-    for (int i=0;i<onePlayerBackgroundSize;i++) {
-        string si;
-        si = loadingPictures + onePlayerBackground[i] ;
-        onePlayerBackgroundTexture[1][i] = loadSurface(si,renderer);
-        if (onePlayerBackgroundTexture[1][i] == NULL) {
-            cout << "Failed to load image SS" << onePlayerBackground[i] << "\n" ;
-            success = false;
-            break;
-        }
-    }
-    loadingPictures = "picture/background_material/SS_gif/gifs/";
-    for (int i=0;i<39;i++) {
-        string si;
-        si = loadingPictures + toString(i) + ".gif" ;
-        onePlayerBackgroundTextureGif[i] = loadSurface(si,renderer);
-        if (onePlayerBackgroundTextureGif[i] == NULL) {
-            cout << "Failed to load image background gif" << i << "\n" ;
-            success = false;
-            break;
-        }
-    }
+    loadingPictures = "picture/SDL_image_related/menuBackground.jpg";
+    menuBackground = loadSurface(loadingPictures, renderer);
+    if (menuBackground == NULL) success = false;
+    
     loadingPictures = "picture/SDL_image_related/back/";
     for (int i=0;i<backGifs;i++) {
         string si;
@@ -174,106 +115,15 @@ bool loadMedia()
 
 //------------------------------------------------------------ real coding part ----------------------------------------------------------
 
-void restart1p() {
-    board.setDifficulty(chosenDifficulty);
+void settingUpOnePerson() {
     board.squareSize = SCREEN_WIDTH/board.Cols;
-    // board.disFromTop = SCREEN_HEIGHT - board.Rows * board.squareSize;
-    playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
-    // board.disFromTop = playField.y
-    RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
-    MenuRect = {playField.y/4, playField.y/4, playField.y, playField.y/2};
-    board.reset();
-
-    onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;
-
-    winningOpacity = 0;
-    winningShowUp = 0;
-
-    // startTime = time(0);
-
-    // cout << board.numNotBombs << "\n" ;
+    // OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
+    // OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
+    // OnePlayer.MenuRect = {OnePlayer.playField.y/4, OnePlayer.playField.y/4, OnePlayer.playField.y, OnePlayer.playField.y/2};
 }
 
-void drawBackButton() {
-    chosenBackPic = (chosenBackPic+1)%(backGifs*2);
-    SDL_RenderCopy(renderer, backButton[chosenBackPic/2], NULL, &backRect);
-}
-
-
-//--------------------------------------------- event-related ---------------------------------------------------
-
-//------------------------------------ one-player-related --------------------------------------
-
-void board_event_handling() {
-    if (e.type == SDL_MOUSEBUTTONUP) {
-        int x,y;
-        SDL_GetMouseState(&x,&y);
-        if (y >= playField.y) { // inside board
-            if (winningShowUp == 0) {
-                int xi = y - playField.y,yi=x;
-                xi/=board.squareSize;
-                yi/=board.squareSize;
-                // cout << xi << " " << yi << "\n" ;
-                if (board.cover[xi][yi]) {
-                    // cout << Rat.button << "\n";
-                    if (e.button.button == SDL_BUTTON_LEFT && !board.flagged[xi][yi]) {
-                        if (!board.isBomb[xi][yi]) {
-                            if (board.countBombs(xi,yi)==0) board.floodField(xi,yi);
-                            else {
-                                board.cover[xi][yi] = false;
-                                board.numNotBombs--;
-                            }
-                        }
-                        else {
-                            board.trigerredX = xi;
-                            board.trigerredY = yi;
-                            board.unReset();
-                        }
-                    }
-                    if (e.button.button == SDL_BUTTON_RIGHT && board.cover[xi][yi]) board.flagged[xi][yi] = 1 - board.flagged[xi][yi];
-                }
-            } else {
-                winningShowUp = 0-winningShowUp;
-            }
-        }
-    }
-    if (e.button.clicks == 2) {
-        // cout << "fuck " ;
-        int x,y;
-        SDL_GetMouseState(&x,&y);
-        int xi = y - playField.y,yi=x;
-        xi/=board.squareSize;
-        yi/=board.squareSize;
-        // cout << xi << " " << yi << " " << board.cover[xi][yi] << " " << board.countBombs(xi,yi) << " " << board.countFlags(xi,yi) << "\n" ;
-        if (!board.cover[xi][yi] && board.countBombs(xi,yi) == board.countFlags(xi,yi)) {
-            // cout << "possible \n" ;
-            // board.cover[xi][yi] = true;
-            bool test = board.floodField2(xi,yi);
-            if (!test) board.unReset();
-        }
-    }
-}
-
-void OnePlayer() {
-    // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
-    if (onePlayerChosenBackgroundX == 2) {
-        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
-        onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);
-    } else {
-        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
-    }
-    board.drawBoard(renderer, playField, MouseIsDown);
-    SDL_RenderCopy(renderer, pic[RestartButton], NULL, &RestartRect);
-    SDL_RenderCopy(renderer, pic[menu], NULL, &MenuRect);
-
-    if (board.numNotBombs <= 0 && winningShowUp == 0) winningShowUp = 5;
-
-    if (winningShowUp!=0) {
-        if (winningShowUp > 0 && winningOpacity < 255) winningOpacity += winningShowUp;
-        if (winningShowUp < 0 && winningOpacity > 0) winningOpacity += winningShowUp;
-        SDL_SetTextureAlphaMod(pic[winning], winningOpacity);
-        SDL_RenderCopy(renderer, pic[winning], NULL, &playField);
-    }
+void drawOnePerson() {
+    // OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
 }
 
 //----------------------------------------- menu-related ------------------------------------------
@@ -293,7 +143,7 @@ void menu_event_handling() {
                         break;
                     case NewGame :
                         current_state = onePlayerScreen ;
-                        restart1p() ;
+                        // OnePlayer.restart1p(board) ;
                         break;
                     case Settings :
                         current_state = settingScreen ;
@@ -328,7 +178,7 @@ void settingUpMenu() {
 }
 
 void drawingMenu() {
-    SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
+    SDL_RenderCopy(renderer, menuBackground, NULL, NULL);
     for (int i=0;i<listMenuSize;i++) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawRect(renderer, &MenuRects[i]);
@@ -344,10 +194,10 @@ void setting_event_handling() {
             for (int j=1;j<4;j++) {
                 if (isInSDLRect(listSettingRects[i][j])) {
                     if (i==0) {
-                        chosenDifficulty = j-1;
-                        restart1p();
+                        // OnePlayer.chosenDifficulty = j-1;
+                        // OnePlayer.restart1p(board);
                     } else {
-                        onePlayerChosenBackgroundX = j-1;
+                        // OnePlayer.onePlayerChosenBackgroundX = j-1;
                     }
                 }
             }
@@ -372,12 +222,17 @@ void settingUpSettings() {
     }
 }
 
+void drawBackButton() {
+    chosenBackPic = (chosenBackPic+1)%(backGifs*2);
+    SDL_RenderCopy(renderer, backButton[chosenBackPic/2], NULL, &backRect);
+}
+
 void drawingSetting() {
-    SDL_RenderCopy(renderer, pic[menuBackground], NULL, NULL);
+    SDL_RenderCopy(renderer, menuBackground, NULL, NULL);
     for (int i=0;i<2;i++) {
-        int chosenNumber ;
-        if (i==0) chosenNumber = chosenDifficulty;
-        if (i==1) chosenNumber = onePlayerChosenBackgroundX;
+        int chosenNumber = 2;
+        // if (i==0) chosenNumber = OnePlayer.chosenDifficulty;
+        // if (i==1) chosenNumber = OnePlayer.onePlayerChosenBackgroundX;
         for (int j=0;j<4;j++) {
             if (j>0 && isInSDLRect(listSettingRects[i][j])) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             else {
@@ -395,21 +250,21 @@ void drawingSetting() {
 
 void event_handling() {
     if (current_state == onePlayerScreen) {
-        if (isInSDLRect(playField)) {
-            board_event_handling();
-        }
-        else {
-            if (isInSDLRect(RestartRect)) {
-                if (e.type == SDL_MOUSEBUTTONUP) restart1p();
-            }
-            else if (isInSDLRect(MenuRect)) {
-                if (e.type == SDL_MOUSEBUTTONUP) {
-                    current_state = menuScreen;
-                    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-                    SDL_RenderClear(renderer);
-                }
-            }
-        }
+        // if (isInSDLRect(OnePlayer.playField)) {
+        //     OnePlayer.board_event_handling(board, e);
+        // }
+        // else {
+        //     if (isInSDLRect(OnePlayer.RestartRect)) {
+        //         if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p(board);
+        //     }
+        //     else if (isInSDLRect(OnePlayer.MenuRect)) {
+        //         if (e.type == SDL_MOUSEBUTTONUP) {
+        //             current_state = menuScreen;
+        //             SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+        //             SDL_RenderClear(renderer);
+        //         }
+        //     }
+        // }
     }
     else if (current_state == menuScreen) {
         menu_event_handling();
@@ -424,12 +279,13 @@ void event_handling() {
 
 int main(int argc, char* argv[]) { // watch toaru pls :)
     srand(time(0));
+    // cout << "fuck\n" ;
     initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
     // screen = SDL_GetWindowSurface(window);
     bool loadingSuccessfull = loadMedia();
     if (!loadingSuccessfull) {
         cout << "failed to load media" ;
-        SDL_Delay(100);
+        SDL_Delay(2000);
         quitSDL(window,renderer);
         return 0;
     }
@@ -442,11 +298,10 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
     //----------------------------------------------------------------------------------------------
 
-    chosenDifficulty = 1;
-    onePlayerChosenBackgroundX = 0;
+    settingUpOnePerson();
     settingUpMenu();
     settingUpSettings();
-    restart1p();
+    // OnePlayer.restart1p(board);
     // board.unReset();
 
     while (!quit) {
@@ -466,7 +321,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
                 drawingMenu();
                 break;
             case onePlayerScreen:
-                OnePlayer();
+                drawOnePerson();
                 break;
             case settingScreen:
                 drawingSetting();

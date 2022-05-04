@@ -76,6 +76,7 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
 
 void ONEPLAYER::restart1p(BOARD &board) {
     board.setDifficulty(chosenDifficulty);
+    board.squareSize = playField.w/board.Cols;
     board.reset();
 
     onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;

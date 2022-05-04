@@ -1,8 +1,8 @@
 #ifndef ONEPLAYER_H
 #define ONEPLAYER_H
 
-// #include <SDL.h>
-// #include "rushia.h"
+#include <SDL.h>
+#include "rushia.h"
 
 // using namespace std;
 

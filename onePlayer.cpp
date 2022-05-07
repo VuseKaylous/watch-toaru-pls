@@ -147,6 +147,7 @@ void ONEPLAYER::drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDo
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
         onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);
     } else {
+        if (onePlayerChosenBackgroundY >= onePlayerBackgroundSize) onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
     }
     board.drawBoard(renderer, playField, MouseDown);

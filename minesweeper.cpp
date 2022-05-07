@@ -10,6 +10,7 @@
 #include "loadTexture.h"
 #include "onePlayer.h"
 #include "setting.h"
+#include "menu.h"
 
 using namespace std;
 
@@ -26,21 +27,14 @@ TTF_Font *gFont = NULL;
 BOARD board;
 ONEPLAYER OnePlayer;
 SETTING Setting;
+MENU Menu;
 
-SDL_Texture *menuBackground;
-
+SDL_Texture *Background;
 
 enum screenState {menuScreen, onePlayerScreen, settingScreen};
 int current_state = menuScreen;
 
 bool MouseIsDown = false;
-
-
-enum listMenu {Continue, NewGame, Settings, Exit};
-string listMenuName[] = {"Continue", "New game", "Settings", "Exit"} ;
-int listMenuSize = 4;
-LTexture listMenuTexture[4];
-SDL_Rect MenuRects[4];
 
 
 bool quit = false;
@@ -69,22 +63,14 @@ bool loadMedia()
     if (!checkSuccess) success = false;
     checkSuccess = Setting.loadSetting(renderer, gFont);
     if (!checkSuccess) success = false;
+    checkSuccess = Menu.loadMenu(renderer, gFont);
+    if (!checkSuccess) success = false;
 
     string loadingPictures;
 
     loadingPictures = "picture/SDL_image_related/menuBackground.jpg";
-    menuBackground = loadSurface(loadingPictures, renderer);
-    if (menuBackground == NULL) success = false;
-
-    SDL_Color textColor = { 255, 255, 255 };
-    for (int i=0;i<listMenuSize;i++) {
-        // listMenuTexture[i] = loadFromRenderedText(listMenuName[i], textColor, renderer, gFont);
-        if (!listMenuTexture[i].loadFromRenderedText(listMenuName[i], textColor, renderer, gFont)) {
-            cout << "Failed to load texture " << listMenuName[i] << "\n" ;
-            success = false;
-            break;
-        }
-    }
+    Background = loadSurface(loadingPictures, renderer);
+    if (Background == NULL) success = false;
 
     return success;
 }
@@ -104,62 +90,9 @@ void drawOnePerson() {
 
 //----------------------------------------- menu-related ------------------------------------------
 
-void menu_event_handling() {
-    if (e.type == SDL_MOUSEBUTTONUP) {
-        // int x,y;
-        // SDL_GetMouseState(&x,&y);
-        for (int i=0;i<listMenuSize;i++) {
-            // SDL_Rect fillRect = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + maxHeight), maxWidth, maxHeight};
-            if (isInSDLRect(MenuRects[i])) {
-                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-                // SDL_RenderClear(renderer);
-                switch (i) {
-                    case Continue:
-                        current_state = onePlayerScreen ;
-                        break;
-                    case NewGame :
-                        current_state = onePlayerScreen ;
-                        OnePlayer.restart1p(board) ;
-                        break;
-                    case Settings :
-                        current_state = settingScreen ;
-                        Setting.chosenBackPic = 0;
-                        break;
-                    case Exit :
-                        quit = true;
-                        break;
-                }
-                break;
-            }
-        }
-    }
-}
-
 void settingUpMenu() {
-    int maxWidth = 0, maxHeight;
-    for (int i=0;i<listMenuSize;i++) {
-        maxWidth = max(maxWidth, listMenuTexture[i].width);
-    }
-    maxHeight = listMenuTexture[0].height*2;
-    maxWidth += maxHeight;
-    int topLeftX, topLeftY;
-    if (listMenuSize%2==0) {
-        topLeftY = SCREEN_HEIGHT/2 - (maxHeight + 20)*(listMenuSize/2)+10;
-    } else {
-        topLeftY = SCREEN_HEIGHT/2 - (maxHeight + 20)*(listMenuSize/2) - maxHeight/2;
-    }
-    for (int i=0;i<listMenuSize;i++) {
-        MenuRects[i] = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + maxHeight), maxWidth, maxHeight};
-    }
-}
-
-void drawingMenu() {
-    SDL_RenderCopy(renderer, menuBackground, NULL, NULL);
-    for (int i=0;i<listMenuSize;i++) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawRect(renderer, &MenuRects[i]);
-        listMenuTexture[i].render(MenuRects[i], renderer);
-    }
+    Menu.menuBackground = Background;
+    Menu.settingUpMenu_Menu(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 //------------------------------------- setting-related ---------------------------------------
@@ -167,7 +100,7 @@ void drawingMenu() {
 void settingUpSettingMain() {
     Setting.settingUpSettings();
     Setting.backRect = {SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200, 200, 200};
-    Setting.settingBackground = menuBackground;
+    Setting.settingBackground = Background;
 }
 
 //------------------------------------- central-event-handling -----------------------------------------------
@@ -177,21 +110,19 @@ void event_handling() {
         if (isInSDLRect(OnePlayer.playField)) {
             OnePlayer.board_event_handling(board, e);
         }
-        else {
-            if (isInSDLRect(OnePlayer.RestartRect)) {
-                if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p(board);
-            }
-            else if (isInSDLRect(OnePlayer.MenuRect)) {
-                if (e.type == SDL_MOUSEBUTTONUP) {
-                    current_state = menuScreen;
-                    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-                    // SDL_RenderClear(renderer);
-                }
+        else if (isInSDLRect(OnePlayer.RestartRect)) {
+            if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p(board);
+        }
+        else if (isInSDLRect(OnePlayer.MenuRect)) {
+            if (e.type == SDL_MOUSEBUTTONUP) {
+                current_state = menuScreen;
+                SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+                // SDL_RenderClear(renderer);
             }
         }
     }
     else if (current_state == menuScreen) {
-        menu_event_handling();
+        Menu.menu_event_handling(e, current_state, renderer, OnePlayer, board, Setting, quit);
     }
     else if (current_state == settingScreen) {
         bool check = Setting.setting_event_handling(e, OnePlayer, board);
@@ -247,7 +178,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
         }
         switch (current_state) {
             case menuScreen:
-                drawingMenu();
+                Menu.drawingMenu(renderer);
                 break;
             case onePlayerScreen:
                 drawOnePerson();

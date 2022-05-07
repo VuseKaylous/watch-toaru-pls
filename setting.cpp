@@ -81,7 +81,7 @@ void SETTING::drawBackButton(SDL_Renderer *renderer) {
 
 void SETTING::drawingSetting(SDL_Renderer *renderer, ONEPLAYER OnePlayer) {
     SDL_RenderCopy(renderer, settingBackground, NULL, NULL);
-    // cout << "rendered background setting\n" ;
+    
     for (int i=0;i<2;i++) {
         int chosenNumber = 1;
         if (i==0) chosenNumber = OnePlayer.chosenDifficulty;
@@ -94,6 +94,7 @@ void SETTING::drawingSetting(SDL_Renderer *renderer, ONEPLAYER OnePlayer) {
             }
             SDL_RenderDrawRect(renderer, &listSettingRects[i][j]);
             listSettingTexture[i][j].render(listSettingRects[i][j], renderer);
+            // cout << "rendered background setting\n" ;
         }
     }
     drawBackButton(renderer);

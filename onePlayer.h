@@ -28,6 +28,7 @@ public:
 	int chosenDifficulty;
 
 	ONEPLAYER();
+	void ONEPLAYERfree();
 	bool loadOnePlayer(SDL_Renderer *renderer);
 	void restart1p(BOARD &board);
 	void board_event_handling(BOARD &board, SDL_Event e);

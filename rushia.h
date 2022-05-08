@@ -21,6 +21,7 @@ public:
     int Rows, Cols, squareSize, disFromTop, numNotBombs, trigerredX, trigerredY, difficulty;
 
     BOARD();
+    void BOARDfree();
     bool loadRushia(SDL_Renderer *renderer);
     void setDifficulty(int chosenDifficulty);
     void reset() ;

@@ -23,6 +23,8 @@ struct SETTING {
 	void drawBackButton(SDL_Renderer *renderer) ;
 
 	void drawingSetting(SDL_Renderer *renderer, ONEPLAYER OnePlayer) ;
+
+	void SETTINGfree();
 };
 
 #endif

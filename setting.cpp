@@ -10,6 +10,18 @@ SETTING::SETTING() {
 	
 }
 
+void SETTING::SETTINGfree() {
+    for (int i=0;i<backGifs;i++) {
+        SDL_DestroyTexture( backButton[i] );
+        backButton[i] = NULL;
+    }
+    for (int i=0;i<2;i++) {
+        for (int j=0;j<4;j++) {
+            listSettingTexture[i][j].free();
+        }
+    }
+}
+
 string listSettingName[2][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}};
 
 bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {

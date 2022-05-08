@@ -18,11 +18,13 @@ struct MENU {
 
     bool loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) ;
 
-    void menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, BOARD &board, SETTING &Setting, bool &quit) ;
+    bool menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, BOARD &board, SETTING &Setting) ;
 
     void settingUpMenu_Menu(int x, int y,int w, int h) ;
 
     void drawingMenu(SDL_Renderer *renderer) ;
+
+    void MENUfree();
 };
 
 

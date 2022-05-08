@@ -11,6 +11,7 @@
 #include "onePlayer.h"
 #include "setting.h"
 #include "menu.h"
+#include "cursor.h"
 
 using namespace std;
 
@@ -23,19 +24,18 @@ SDL_Renderer* renderer;
 // SDL_Surface* screen ;
 SDL_Event e;
 TTF_Font *gFont = NULL;
+bool MouseIsDown = false;
 
 BOARD board;
 ONEPLAYER OnePlayer;
 SETTING Setting;
 MENU Menu;
+CURSOR mouse;
 
 SDL_Texture *Background;
 
 enum screenState {menuScreen, onePlayerScreen, settingScreen};
 int current_state = menuScreen;
-
-bool MouseIsDown = false;
-
 
 bool quit = false;
 
@@ -65,6 +65,8 @@ bool loadMedia()
     if (!checkSuccess) success = false;
     checkSuccess = Menu.loadMenu(renderer, gFont);
     if (!checkSuccess) success = false;
+    checkSuccess = mouse.loadCursor(renderer);
+    if (!checkSuccess) success = false;
 
     string loadingPictures;
 
@@ -82,10 +84,6 @@ void settingUpOnePerson() {
     OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
     OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
     OnePlayer.MenuRect = {OnePlayer.playField.y/4, OnePlayer.playField.y/4, OnePlayer.playField.y, OnePlayer.playField.y/2};
-}
-
-void drawOnePerson() {
-    OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
 }
 
 //----------------------------------------- menu-related ------------------------------------------
@@ -122,7 +120,7 @@ void event_handling() {
         }
     }
     else if (current_state == menuScreen) {
-        Menu.menu_event_handling(e, current_state, renderer, OnePlayer, board, Setting, quit);
+        if (Menu.menu_event_handling(e, current_state, renderer, OnePlayer, board, Setting)) quit = true;
     }
     else if (current_state == settingScreen) {
         bool check = Setting.setting_event_handling(e, OnePlayer, board);
@@ -176,17 +174,19 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
             event_handling();
         }
+        mouse.cursor_event_handling();
         switch (current_state) {
             case menuScreen:
                 Menu.drawingMenu(renderer);
                 break;
             case onePlayerScreen:
-                drawOnePerson();
+                OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
                 break;
             case settingScreen:
                 Setting.drawingSetting(renderer, OnePlayer);
                 break;
         }
+        mouse.drawCursor(renderer);
 
         SDL_RenderPresent(renderer);
     }
@@ -196,6 +196,11 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
 
     // use SDL_RenderPresent(renderer) to show it
+    mouse.CURSORfree();
+    board.BOARDfree();
+    Menu.MENUfree();
+    Setting.SETTINGfree();
+    OnePlayer.ONEPLAYERfree();
     quitSDL(window, renderer);
     return 0;
 

@@ -14,6 +14,22 @@ ONEPLAYER::ONEPLAYER() {
 
 string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
 
+void ONEPLAYER::ONEPLAYERfree() {
+    SDL_DestroyTexture(RestartButton);
+    SDL_DestroyTexture(winning);
+    SDL_DestroyTexture(menu);
+    RestartButton = winning = menu = NULL;
+    for (int i=0;i<onePlayerBackgroundSize;i++) {
+        SDL_DestroyTexture(onePlayerBackgroundTexture[0][i]);
+        SDL_DestroyTexture(onePlayerBackgroundTexture[1][i]);
+        onePlayerBackgroundTexture[0][i] = onePlayerBackgroundTexture[1][i] = NULL;
+    }
+    for (int i=0;i<39;i++) {
+        SDL_DestroyTexture(onePlayerBackgroundTextureGif[i]);
+        onePlayerBackgroundTextureGif[i] = NULL;
+    }
+}
+
 bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
     bool success = true;
     string loadingPictures = "picture/SDL_image_related/";

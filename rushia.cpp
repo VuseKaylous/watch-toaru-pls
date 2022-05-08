@@ -6,6 +6,17 @@
 
 using namespace std;
 
+void BOARD::BOARDfree() {
+    SDL_DestroyTexture(bomb);
+    SDL_DestroyTexture(flag);
+    SDL_DestroyTexture(trigerredBomb);
+    bomb = flag = trigerredBomb = NULL;
+    for (int i=0;i<=9;i++) {
+        SDL_DestroyTexture(numbers[i]);
+        numbers[i] = NULL;
+    }
+}
+
 bool BOARD::loadRushia(SDL_Renderer *renderer) {
     bool success = true;
     //Load stretching surface
@@ -148,15 +159,24 @@ void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown
     for (int i=0;i<=Cols;i++) {
         SDL_RenderDrawLine(renderer, i*squareSize, playField.y, i*squareSize, playField.y + playField.h );
     }
+    SDL_SetRenderDrawColor(renderer, 0,0,0,30);
+    SDL_RenderFillRect(renderer, &playField);
 }
 
 void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi, bool MouseDown) {
     SDL_Rect fillRect = { x, y, w, h };
     if (cover[xi][yi]) {
         if (isIn(x,y,x+w,y+h)) { // hovering
-            if (MouseDown) SDL_SetRenderDrawColor(renderer, 117, 202, 255, 255);
-            else SDL_SetRenderDrawColor(renderer, 28, 149, 201, 255);
-            SDL_RenderFillRect( renderer, &fillRect );
+            if (MouseDown) {
+                SDL_SetRenderDrawColor(renderer, 117, 202, 255, 200);
+                SDL_RenderFillRect(renderer, &fillRect);
+            }
+            else {
+                SDL_SetRenderDrawColor(renderer, 28, 149, 201, 120);
+                // SDL_SetTextureAlphaMod(winning, winningOpacity);
+                SDL_RenderFillRect( renderer, &fillRect );
+            }
+            
         }
         // else SDL_SetRenderDrawColor( renderer, 116, 150, 168, 255 );
         

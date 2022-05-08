@@ -12,6 +12,12 @@ MENU::MENU() {
 
 }
 
+void MENU::MENUfree() {
+    for (int i=0;i<listMenuSize;i++) {
+        listMenuTexture[i].free();
+    }
+}
+
 bool MENU::loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) {
     bool success = true;
     SDL_Color textColor = { 255, 255, 255 };
@@ -26,7 +32,8 @@ bool MENU::loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) {
     return success;
 }
 
-void MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, BOARD &board, SETTING &Setting, bool &quit) {
+bool MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, BOARD &board, SETTING &Setting) {
+    bool rt = false;
     if (e.type == SDL_MOUSEBUTTONUP) {
         // int x,y;
         // SDL_GetMouseState(&x,&y);
@@ -48,13 +55,14 @@ void MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *re
                         Setting.chosenBackPic = 0;
                         break;
                     case Exit :
-                        quit = true;
+                        rt = true;
                         break;
                 }
                 break;
             }
         }
     }
+    return rt;
 }
 
 void MENU::settingUpMenu_Menu(int x, int y,int w, int h) {

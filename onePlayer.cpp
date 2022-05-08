@@ -10,6 +10,7 @@ using namespace std;
 ONEPLAYER::ONEPLAYER() {
     chosenDifficulty = 1;
     onePlayerChosenBackgroundX = 0;
+    chosenWalfie = 0;
 }
 
 string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
@@ -17,8 +18,12 @@ string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
 void ONEPLAYER::ONEPLAYERfree() {
     SDL_DestroyTexture(RestartButton);
     SDL_DestroyTexture(winning);
-    SDL_DestroyTexture(menu);
-    RestartButton = winning = menu = NULL;
+    for (int i=0;i<3;i++) {
+        SDL_DestroyTexture(onePlayerDecoratingTextureGif[i]);
+        onePlayerDecoratingTextureGif[i] = NULL;
+    }
+    RestartButton = winning = NULL;
+    menu.free();
     for (int i=0;i<onePlayerBackgroundSize;i++) {
         SDL_DestroyTexture(onePlayerBackgroundTexture[0][i]);
         SDL_DestroyTexture(onePlayerBackgroundTexture[1][i]);
@@ -30,7 +35,7 @@ void ONEPLAYER::ONEPLAYERfree() {
     }
 }
 
-bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
+bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer, TTF_Font *gFont) {
     bool success = true;
     string loadingPictures = "picture/SDL_image_related/";
 
@@ -44,11 +49,20 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer) {
     if (winning == NULL) success = false;
     // if (!success) logSDLError(cout, "winning", true);
     
-    loadingPictures = "picture/SDL_image_related/menu.png";
-    menu = loadSurface(loadingPictures, renderer);
-    if (menu == NULL) success = false;
+    // loadingPictures = "picture/SDL_image_related/menu.png";
+    // menu = loadSurface(loadingPictures, renderer);
+    // if (menu == NULL) success = false;
     // if (!success) logSDLError(cout, "menu", true);
-    
+
+    SDL_Color textColor = {0, 0, 0};
+    if (!menu.loadFromRenderedText("MENU", textColor, renderer, gFont)) success = false;
+
+    loadingPictures = "picture/SDL_image_related/walfie/out-transparent-";
+    for (int i=0;i<3;i++) {
+        string si = loadingPictures + toString(i) + ".png";
+        onePlayerDecoratingTextureGif[i] = loadSurface(si, renderer);
+        if (onePlayerDecoratingTextureGif[i] == NULL) success = false;
+    }
     
     loadingPictures = "picture/background_material/AH/";
     for (int i=0;i<onePlayerBackgroundSize;i++) {
@@ -158,7 +172,7 @@ void ONEPLAYER::board_event_handling(BOARD &board, SDL_Event e) {
 }
 
 void ONEPLAYER::drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDown) {
-    // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
+    SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
     if (onePlayerChosenBackgroundX == 2) {
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
         onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);
@@ -167,8 +181,16 @@ void ONEPLAYER::drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDo
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
     }
     board.drawBoard(renderer, playField, MouseDown);
+
     SDL_RenderCopy(renderer, RestartButton, NULL, &RestartRect);
-    SDL_RenderCopy(renderer, menu, NULL, &MenuRect);
+    // SDL_RenderCopy(renderer, menu, NULL, &MenuRect);
+    
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderDrawRect(renderer, &MenuRect);
+    menu.render(MenuRect, renderer);
+
+    chosenWalfie = (chosenWalfie + 1)%12;
+    SDL_RenderCopy(renderer, onePlayerDecoratingTextureGif[chosenWalfie/4], NULL, &walfieRect);
 
     if (board.numNotBombs <= 0 && winningShowUp == 0) winningShowUp = 5;
 

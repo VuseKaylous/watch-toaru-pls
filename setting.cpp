@@ -4,25 +4,28 @@
 #include "loadTexture.h"
 #include "onePlayer.h"
 #include "rushia.h"
+#include "cursor.h"
 #include "setting.h"
 
 SETTING::SETTING() {
 	
 }
 
+int listSettingSizeX = 3, listSettingSizeY = 4;
+string listSettingName[3][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}, {"Cursor:", "normal", "osu", ""}};
+
 void SETTING::SETTINGfree() {
     for (int i=0;i<backGifs;i++) {
         SDL_DestroyTexture( backButton[i] );
         backButton[i] = NULL;
     }
-    for (int i=0;i<2;i++) {
-        for (int j=0;j<4;j++) {
+    for (int i=0;i<listSettingSizeX;i++) {
+        for (int j=0;j<listSettingSizeY;j++) {
+            if (listSettingName[i][j].size() == 0) continue;
             listSettingTexture[i][j].free();
         }
     }
 }
-
-string listSettingName[2][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}};
 
 bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
 	bool success = true;
@@ -39,31 +42,41 @@ bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
         }
     }
     SDL_Color textColor = { 255, 255, 255 };
-    for (int j=0;j<2;j++) {
-        for (int i=0;i<4;i++) {
-            if (!listSettingTexture[j][i].loadFromRenderedText(listSettingName[j][i], textColor, renderer, gFont)) {
-                cout << "Failed to load texture " << listSettingName[j][i] << "\n" ;
-                success = false;
-                break;
+    for (int j=0;j<listSettingSizeX;j++) {
+        for (int i=0;i<listSettingSizeY;i++) {
+            if (listSettingName[j][i].size() > 0) {
+                if (!listSettingTexture[j][i].loadFromRenderedText(listSettingName[j][i], textColor, renderer, gFont)) {
+                    cout << "Failed to load texture " << listSettingName[j][i] << "\n" ;
+                    success = false;
+                    break;
+                }
             }
         }
     }
     return success;
 }
 
-bool SETTING::setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, BOARD &board) {
+bool SETTING::setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, BOARD &board, CURSOR &mouse) {
     if (e.type == SDL_MOUSEBUTTONUP) {
     	if (isInSDLRect(backRect)) {
             return true;
         }
-        for (int i=0;i<2;i++) {
-            for (int j=1;j<4;j++) {
+        for (int i=0;i<listSettingSizeX;i++) {
+            for (int j=1;j<listSettingSizeY;j++) {
+                if (listSettingName[i][j].size() == 0) continue;
                 if (isInSDLRect(listSettingRects[i][j]) && j>0) {
-                    if (i==0) {
-                        OnePlayer.chosenDifficulty = j-1;
-                        OnePlayer.restart1p(board);
-                    } else {
-                        OnePlayer.onePlayerChosenBackgroundX = j-1;
+                    switch (i) {
+                        case 0:
+                            OnePlayer.chosenDifficulty = j-1;
+                            OnePlayer.restart1p(board);
+                            break;
+                        case 1:
+                            OnePlayer.onePlayerChosenBackgroundX = j-1;
+                            break;
+                        case 2:
+                            mouse.usingCursor = j-1;
+                            mouse.setCursor();
+                            break;
                     }
                 }
             }
@@ -76,8 +89,9 @@ void SETTING::settingUpSettings() {
     int x,y;
     y = listSettingTexture[0][0].height*2;
     x = y;
-    for (int i=0;i<2;i++) {
-        for (int j=0;j<4;j++) {
+    for (int i=0;i<listSettingSizeX;i++) {
+        for (int j=0;j<listSettingSizeY;j++) {
+            if (listSettingName[i][j].size() == 0) continue;
             listSettingRects[i][j] = {x, y, listSettingTexture[i][j].width + listSettingTexture[i][j].height, listSettingTexture[i][j].height*2};
             x += listSettingRects[i][j].w + 30;
         }
@@ -91,14 +105,16 @@ void SETTING::drawBackButton(SDL_Renderer *renderer) {
     SDL_RenderCopy(renderer, backButton[chosenBackPic/2], NULL, &backRect);
 }
 
-void SETTING::drawingSetting(SDL_Renderer *renderer, ONEPLAYER OnePlayer) {
+void SETTING::drawingSetting(SDL_Renderer *renderer, ONEPLAYER &OnePlayer, CURSOR &mouse) {
     SDL_RenderCopy(renderer, settingBackground, NULL, NULL);
     
-    for (int i=0;i<2;i++) {
+    for (int i=0;i<listSettingSizeX;i++) {
         int chosenNumber = 1;
         if (i==0) chosenNumber = OnePlayer.chosenDifficulty;
         if (i==1) chosenNumber = OnePlayer.onePlayerChosenBackgroundX;
-        for (int j=0;j<4;j++) {
+        if (i==2) chosenNumber = mouse.usingCursor;
+        for (int j=0;j<listSettingSizeY;j++) {
+            if (listSettingName[i][j].size() == 0) continue;
             if (j>0 && isInSDLRect(listSettingRects[i][j])) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             else {
                 if (j-1 == chosenNumber) SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);

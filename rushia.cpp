@@ -159,7 +159,7 @@ void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown
     for (int i=0;i<=Cols;i++) {
         SDL_RenderDrawLine(renderer, i*squareSize, playField.y, i*squareSize, playField.y + playField.h );
     }
-    SDL_SetRenderDrawColor(renderer, 0,0,0,30);
+    SDL_SetRenderDrawColor(renderer, 0,0,0,20);
     SDL_RenderFillRect(renderer, &playField);
 }
 

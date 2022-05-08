@@ -35,7 +35,7 @@ CURSOR mouse;
 SDL_Texture *Background;
 
 enum screenState {menuScreen, onePlayerScreen, settingScreen};
-int current_state = menuScreen;
+int current_state = settingScreen;
 
 bool quit = false;
 
@@ -59,7 +59,7 @@ bool loadMedia()
     bool checkSuccess = board.loadRushia(renderer);
     if (!checkSuccess) success = false;
     // cout << "fuck\n" ;
-    checkSuccess = OnePlayer.loadOnePlayer(renderer);
+    checkSuccess = OnePlayer.loadOnePlayer(renderer, gFont);
     if (!checkSuccess) success = false;
     checkSuccess = Setting.loadSetting(renderer, gFont);
     if (!checkSuccess) success = false;
@@ -79,11 +79,25 @@ bool loadMedia()
 
 //------------------------------------------------------------ real coding part ----------------------------------------------------------
 
+void graduate() {
+    mouse.CURSORfree();
+    board.BOARDfree();
+    Menu.MENUfree();
+    Setting.SETTINGfree();
+    OnePlayer.ONEPLAYERfree();
+    quitSDL(window, renderer);
+}
+
+//------------------------------------------ One-person-related ------------------------------------
+
 void settingUpOnePerson() {
     board.squareSize = SCREEN_WIDTH/board.Cols;
     OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
     OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
     OnePlayer.MenuRect = {OnePlayer.playField.y/4, OnePlayer.playField.y/4, OnePlayer.playField.y, OnePlayer.playField.y/2};
+    OnePlayer.MenuRect.w = OnePlayer.MenuRect.h / OnePlayer.menu.height * OnePlayer.menu.width + OnePlayer.menu.height;
+    // cout << OnePlayer.MenuRect.x << " " << OnePlayer.MenuRect.y << " " << OnePlayer.MenuRect.w << " " << OnePlayer.MenuRect.h << "\n" ;
+    OnePlayer.walfieRect = {SCREEN_WIDTH - OnePlayer.playField.y/2*3, 0, OnePlayer.playField.y/2*3 , OnePlayer.playField.y};
 }
 
 //----------------------------------------- menu-related ------------------------------------------
@@ -93,7 +107,7 @@ void settingUpMenu() {
     Menu.settingUpMenu_Menu(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-//------------------------------------- setting-related ---------------------------------------
+//------------------------------------- setting-related -------------------------------------------
 
 void settingUpSettingMain() {
     Setting.settingUpSettings();
@@ -101,7 +115,7 @@ void settingUpSettingMain() {
     Setting.settingBackground = Background;
 }
 
-//------------------------------------- central-event-handling -----------------------------------------------
+//------------------------------------- central-event-handling -----------------------------------------------------
 
 void event_handling() {
     if (current_state == onePlayerScreen) {
@@ -123,7 +137,7 @@ void event_handling() {
         if (Menu.menu_event_handling(e, current_state, renderer, OnePlayer, board, Setting)) quit = true;
     }
     else if (current_state == settingScreen) {
-        bool check = Setting.setting_event_handling(e, OnePlayer, board);
+        bool check = Setting.setting_event_handling(e, OnePlayer, board, mouse);
         if (check) current_state = menuScreen;
     }
 }
@@ -169,9 +183,11 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             if (e.type == SDL_QUIT) quit = true;
             if (e.type == SDL_KEYDOWN) {
                 if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                if (e.key.keysym.sym == SDLK_1) current_state = onePlayerScreen;
             }
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;
+
             event_handling();
         }
         mouse.cursor_event_handling();
@@ -183,7 +199,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
                 OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
                 break;
             case settingScreen:
-                Setting.drawingSetting(renderer, OnePlayer);
+                Setting.drawingSetting(renderer, OnePlayer, mouse);
                 break;
         }
         mouse.drawCursor(renderer);
@@ -196,12 +212,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
 
     // use SDL_RenderPresent(renderer) to show it
-    mouse.CURSORfree();
-    board.BOARDfree();
-    Menu.MENUfree();
-    Setting.SETTINGfree();
-    OnePlayer.ONEPLAYERfree();
-    quitSDL(window, renderer);
+    graduate();
     return 0;
 
 }

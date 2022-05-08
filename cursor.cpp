@@ -4,6 +4,7 @@
 #include "cursor.h"
 
 CURSOR::CURSOR(){
+	usingCursor = 1;
 	tracesSize = 20;
 	int x,y;
     SDL_GetMouseState(&x,&y);
@@ -12,16 +13,28 @@ CURSOR::CURSOR(){
 
 bool CURSOR::loadCursor(SDL_Renderer *renderer) {
 	bool success = true;
-	osuCursor = SDL_CreateColorCursor(IMG_Load( "picture/cursor/cursormiddle.png" ), 54, 54);
+	osuCursor = SDL_CreateColorCursor(IMG_Load( "picture/cursor/cursormiddle.png" ), 27, 27);
 	if (osuCursor == NULL) success = false;
-	SDL_SetCursor(osuCursor);
+	normalCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+	// SDL_SetCursor(osuCursor);
+	setCursor();
 	cursorTrail = loadSurface("picture/cursor/cursortrail.png", renderer);
 	if (cursorTrail == NULL) success = false;
 	return success;
 }
 
+void CURSOR::setCursor() {
+	if (usingCursor == 0) {
+		if (normalCursor != SDL_GetCursor()) SDL_SetCursor(normalCursor);
+	}
+	if (usingCursor == 1) {
+		if (osuCursor != SDL_GetCursor()) SDL_SetCursor(osuCursor);
+	}
+}
+
 void CURSOR::CURSORfree() {
 	SDL_FreeCursor(osuCursor);
+	SDL_FreeCursor(normalCursor);
 	SDL_DestroyTexture(cursorTrail);
 	cursorTrail = NULL;
 }

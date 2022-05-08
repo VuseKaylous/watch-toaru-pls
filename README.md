@@ -7,6 +7,7 @@ Quest:
 - create fade menu
 + create difficulty
 - create 2-player mode?
-- decorate cursor
++ decorate cursor
 + decorate board
 - decorate skin
+- resizable window

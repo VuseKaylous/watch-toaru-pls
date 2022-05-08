@@ -23,7 +23,7 @@ struct ONEPLAYER {
 	SDL_Texture *RestartButton, *winning;
 	LTexture menu;
 
-	SDL_Rect RestartRect, playField, MenuRect, walfieRect;
+	SDL_Rect RestartRect, playField, MenuRect, walfieRect, walfieMovingRect;
 	int onePlayerChosenBackgroundX, onePlayerChosenBackgroundY, chosenWalfie;
 	float winningShowUp, winningOpacity;
 	int chosenDifficulty;
@@ -33,6 +33,7 @@ struct ONEPLAYER {
 	bool loadOnePlayer(SDL_Renderer *renderer, TTF_Font *gFont);
 	void restart1p(BOARD &board);
 	void board_event_handling(BOARD &board, SDL_Event e);
+	void drawWalfie(SDL_Renderer *renderer);
 	void drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDown);
 };
 

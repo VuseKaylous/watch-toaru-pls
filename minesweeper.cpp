@@ -35,7 +35,7 @@ CURSOR mouse;
 SDL_Texture *Background;
 
 enum screenState {menuScreen, onePlayerScreen, settingScreen};
-int current_state = settingScreen;
+int current_state = menuScreen;
 
 bool quit = false;
 
@@ -98,6 +98,7 @@ void settingUpOnePerson() {
     OnePlayer.MenuRect.w = OnePlayer.MenuRect.h / OnePlayer.menu.height * OnePlayer.menu.width + OnePlayer.menu.height;
     // cout << OnePlayer.MenuRect.x << " " << OnePlayer.MenuRect.y << " " << OnePlayer.MenuRect.w << " " << OnePlayer.MenuRect.h << "\n" ;
     OnePlayer.walfieRect = {SCREEN_WIDTH - OnePlayer.playField.y/2*3, 0, OnePlayer.playField.y/2*3 , OnePlayer.playField.y};
+    OnePlayer.walfieMovingRect = OnePlayer.walfieRect;
 }
 
 //----------------------------------------- menu-related ------------------------------------------

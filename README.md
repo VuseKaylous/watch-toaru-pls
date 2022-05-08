@@ -11,3 +11,4 @@ Quest:
 + decorate board
 - decorate skin
 - resizable window
+- remember setting

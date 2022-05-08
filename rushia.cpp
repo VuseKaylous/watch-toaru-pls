@@ -145,6 +145,8 @@ bool BOARD::floodField2(int x,int y) {
     return true;
 }
 void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown) {
+    // SDL_SetRenderDrawColor(renderer, 0,0,0,20);
+    // SDL_RenderFillRect(renderer, &playField);
     for (int i=0;i<Rows;i++) {
         for (int j=0;j<Cols;j++) {
             // drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer, countBombs(i,j), i,j);
@@ -159,8 +161,7 @@ void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown
     for (int i=0;i<=Cols;i++) {
         SDL_RenderDrawLine(renderer, i*squareSize, playField.y, i*squareSize, playField.y + playField.h );
     }
-    SDL_SetRenderDrawColor(renderer, 0,0,0,20);
-    SDL_RenderFillRect(renderer, &playField);
+    
 }
 
 void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi, bool MouseDown) {

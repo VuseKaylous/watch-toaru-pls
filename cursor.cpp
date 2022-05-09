@@ -4,7 +4,7 @@
 #include "cursor.h"
 
 CURSOR::CURSOR(){
-	usingCursor = 1;
+	usingCursor = 0;
 	tracesSize = 20;
 	int x,y;
     SDL_GetMouseState(&x,&y);

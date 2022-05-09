@@ -1,4 +1,5 @@
 #include<cstring>
+#include<fstream>
 #include<SDL.h>
 #include "sora.h"
 #include "aloe.h"
@@ -15,6 +16,35 @@ void BOARD::BOARDfree() {
         SDL_DestroyTexture(numbers[i]);
         numbers[i] = NULL;
     }
+    ofstream output("boardSetting.txt", ios::out | ios::trunc);
+    output << Rows << " " << Cols << " " << difficulty << "\n" ;
+    for (int i=0;i<Rows;i++) {
+        for (int j=0;j<Cols;j++) {
+            output << isBomb[i][j] << " " ;
+        }
+        output << "\n" ;
+    }
+    output << "\n" ;
+    for (int i=0;i<Rows;i++) {
+        for (int j=0;j<Cols;j++) {
+            output << cover[i][j] << " " ;
+        }
+        output << "\n" ;
+    }
+    output << "\n" ;
+    for (int i=0;i<Rows;i++) {
+        for (int j=0;j<Cols;j++) {
+            output << flagged[i][j] << " " ;
+        }
+        output << "\n" ;
+    }
+    output << "\n" ;
+    output << trigerredX << " " << trigerredY << "\n" ;
+    output.close();
+}
+
+BOARD::~BOARD() {
+    BOARDfree();
 }
 
 bool BOARD::loadRushia(SDL_Renderer *renderer) {
@@ -64,11 +94,42 @@ void BOARD::setDifficulty(int chosenDifficulty) {
             Cols = 48;
             difficulty = 5;
             break;
+        case 3:
+            Rows = 9;
+            Cols = 16;
+            difficulty = Rows*Cols;
     }
 }
 
 BOARD::BOARD() {
-    setDifficulty(1);
+    // setDifficulty(1);
+    trigerredX = trigerredY = -1;
+    ifstream fi("boardSetting.txt");
+    if (fi.eof()) {
+        setDifficulty(3);
+        reset();
+    }
+    else {
+        fi >> Rows >> Cols >> difficulty ;
+        for (int i=0;i<Rows;i++) {
+            for (int j=0;j<Cols;j++) {
+                fi >> isBomb[i][j] ;
+            }
+        }
+        for (int i=0;i<Rows;i++) {
+            for (int j=0;j<Cols;j++) {
+                fi >> cover[i][j] ;
+            }
+        }
+        for (int i=0;i<Rows;i++) {
+            for (int j=0;j<Cols;j++) {
+                fi >> flagged[i][j] ;
+            }
+        }
+        fi >> trigerredX >> trigerredY ;
+        numNotBombs = Rows*Cols - (Rows*Cols/difficulty);
+    }
+    fi.close();
 }
 
 void BOARD::reset() {

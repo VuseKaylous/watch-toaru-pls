@@ -1,4 +1,5 @@
 #include<iostream>
+#include<fstream>
 #include<vector>
 #include<ctime>
 #include<SDL.h>
@@ -39,6 +40,8 @@ int current_state = menuScreen;
 
 bool quit = false;
 
+int *savedSetting[3];
+
 // time_t startTime,endTime;
 
 
@@ -77,23 +80,17 @@ bool loadMedia()
     return success;
 }
 
-//------------------------------------------------------------ real coding part ----------------------------------------------------------
-
-void graduate() {
-    mouse.CURSORfree();
-    board.BOARDfree();
-    Menu.MENUfree();
-    Setting.SETTINGfree();
-    OnePlayer.ONEPLAYERfree();
-    quitSDL(window, renderer);
-}
-
 //------------------------------------------ One-person-related ------------------------------------
 
 void settingUpOnePerson() {
     board.squareSize = SCREEN_WIDTH/board.Cols;
     OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
-    OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
+
+    // OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
+    OnePlayer.RestartRect.w = OnePlayer.RestartRect.h = OnePlayer.playField.y/2;
+    OnePlayer.RestartRect.x = SCREEN_WIDTH/2 - OnePlayer.RestartRect.w/2;
+    OnePlayer.RestartRect.y = OnePlayer.RestartRect.h/2;
+
     OnePlayer.MenuRect = {OnePlayer.playField.y/4, OnePlayer.playField.y/4, OnePlayer.playField.y, OnePlayer.playField.y/2};
     OnePlayer.MenuRect.w = OnePlayer.MenuRect.h / OnePlayer.menu.height * OnePlayer.menu.width + OnePlayer.menu.height;
     // cout << OnePlayer.MenuRect.x << " " << OnePlayer.MenuRect.y << " " << OnePlayer.MenuRect.w << " " << OnePlayer.MenuRect.h << "\n" ;
@@ -143,6 +140,39 @@ void event_handling() {
     }
 }
 
+//------------------------------------------------------------ real coding part ----------------------------------------------------------
+
+void settingUpEverything() {
+    ifstream inp("savedSettings.txt");
+    // for (int i=0;i<3;i++) inp >> savedSetting[i] ;
+    inp >> OnePlayer.chosenDifficulty >> OnePlayer.onePlayerChosenBackgroundX >> mouse.usingCursor ;
+    inp.close();
+
+    settingUpOnePerson();
+    settingUpMenu();
+    settingUpSettingMain();
+
+    savedSetting[0] = &OnePlayer.chosenDifficulty ;
+    savedSetting[1] = &OnePlayer.onePlayerChosenBackgroundX ;
+    savedSetting[2] = &mouse.usingCursor;
+    mouse.setCursor();
+
+    // OnePlayer.restart1p(board);
+}
+
+void graduate() {
+    ofstream output("savedSettings.txt", ios::out | ios::trunc);
+    for (int i=0;i<3;i++) output << *savedSetting[i] << " " ;
+    output.close();
+
+    mouse.CURSORfree();
+    board.BOARDfree();
+    Menu.MENUfree();
+    Setting.SETTINGfree();
+    OnePlayer.ONEPLAYERfree();
+    quitSDL(window, renderer);
+}
+
 //------------------------------------------------- main ---------------------------------------------------
 
 
@@ -167,15 +197,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
     //----------------------------------------------------------------------------------------------
 
-    settingUpOnePerson();
-
-    settingUpMenu();
-
-    settingUpSettingMain();
-    
-    OnePlayer.restart1p(board);
-    // board.unReset();
-    
+    settingUpEverything();
 
     while (!quit) {
         SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
@@ -184,7 +206,11 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
             if (e.type == SDL_QUIT) quit = true;
             if (e.type == SDL_KEYDOWN) {
                 if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
-                if (e.key.keysym.sym == SDLK_1) current_state = onePlayerScreen;
+                if (e.key.keysym.sym == SDLK_3) {
+                    OnePlayer.chosenDifficulty = 3;
+                    board.setDifficulty(3);
+                    OnePlayer.restart1p(board);
+                }
             }
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
             if (e.type == SDL_MOUSEBUTTONUP) MouseIsDown = false;

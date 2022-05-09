@@ -11,6 +11,14 @@ ONEPLAYER::ONEPLAYER() {
     chosenDifficulty = 1;
     onePlayerChosenBackgroundX = 0;
     chosenWalfie = 0;
+
+    onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;
+    winningOpacity = 0;
+    winningShowUp = 0;
+}
+
+ONEPLAYER::~ONEPLAYER() {
+    ONEPLAYERfree();
 }
 
 string onePlayerBackground[] = {"0.jpg", "1.jpg", "2.jpg", "3.png"};
@@ -174,9 +182,11 @@ void ONEPLAYER::board_event_handling(BOARD &board, SDL_Event e) {
 void ONEPLAYER::drawWalfie(SDL_Renderer *renderer) {
     chosenWalfie = (chosenWalfie + 1)%12;
     SDL_Rect fillRect = walfieMovingRect;
+    bool fuck = true;
     while (fillRect.x + fillRect.w > 0) {
-        SDL_RenderCopy(renderer, onePlayerDecoratingTextureGif[chosenWalfie/4], NULL, &fillRect);
+        if (fuck) SDL_RenderCopy(renderer, onePlayerDecoratingTextureGif[chosenWalfie/4], NULL, &fillRect);
         fillRect.x -= fillRect.w;
+        fuck = 1 - fuck;
     }
 }
 
@@ -192,12 +202,14 @@ void ONEPLAYER::drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDo
     board.drawBoard(renderer, playField, MouseDown);
 
     walfieMovingRect.x --;
-    if (walfieMovingRect.x < walfieRect.x) walfieMovingRect.x += walfieRect.w;
+    if (walfieMovingRect.x < walfieRect.x - walfieRect.w) walfieMovingRect.x = walfieRect.x + walfieRect.w;
     drawWalfie(renderer);
 
     SDL_RenderCopy(renderer, RestartButton, NULL, &RestartRect);
     // SDL_RenderCopy(renderer, menu, NULL, &MenuRect);
     
+    SDL_SetRenderDrawColor(renderer,255, 255, 255, 255);
+    SDL_RenderFillRect(renderer, &MenuRect);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderDrawRect(renderer, &MenuRect);
     menu.render(MenuRect, renderer);

@@ -35,6 +35,7 @@ struct ONEPLAYER {
 	void board_event_handling(BOARD &board, SDL_Event e);
 	void drawWalfie(SDL_Renderer *renderer);
 	void drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDown);
+	~ONEPLAYER();
 };
 
 #endif

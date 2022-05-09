@@ -11,6 +11,11 @@ SETTING::SETTING() {
 	
 }
 
+SETTING::~SETTING() {
+    SETTINGfree();
+}
+
+
 int listSettingSizeX = 3, listSettingSizeY = 4;
 string listSettingName[3][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}, {"Cursor:", "normal", "osu", ""}};
 

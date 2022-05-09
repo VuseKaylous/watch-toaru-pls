@@ -26,6 +26,8 @@ struct SETTING {
 	void drawingSetting(SDL_Renderer *renderer, ONEPLAYER &OnePlayer, CURSOR &mouse) ;
 
 	void SETTINGfree();
+
+	~SETTING();
 };
 
 #endif

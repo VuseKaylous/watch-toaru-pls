@@ -29,7 +29,6 @@ bool MouseIsDown = false;
 
 SETTING Setting;
 MENU Menu;
-CURSOR mouse;
 
 SDL_Texture *Background;
 
@@ -64,8 +63,6 @@ bool loadMedia()
     if (!checkSuccess) success = false;
     checkSuccess = Menu.loadMenu(renderer, gFont);
     if (!checkSuccess) success = false;
-    checkSuccess = mouse.loadCursor(renderer);
-    if (!checkSuccess) success = false;
 
     string loadingPictures;
 
@@ -79,19 +76,7 @@ bool loadMedia()
 //------------------------------------------ One-person-related ------------------------------------
 
 void settingUpOnePerson() {
-    Setting.OnePlayer.board.squareSize = SCREEN_WIDTH/Setting.OnePlayer.board.Cols;
-    Setting.OnePlayer.playField = {0,SCREEN_HEIGHT - Setting.OnePlayer.board.Rows * Setting.OnePlayer.board.squareSize,SCREEN_WIDTH, Setting.OnePlayer.board.Rows * Setting.OnePlayer.board.squareSize};
-
-    // OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
-    Setting.OnePlayer.RestartRect.w = Setting.OnePlayer.RestartRect.h = Setting.OnePlayer.playField.y/2;
-    Setting.OnePlayer.RestartRect.x = SCREEN_WIDTH/2 - Setting.OnePlayer.RestartRect.w/2;
-    Setting.OnePlayer.RestartRect.y = Setting.OnePlayer.RestartRect.h/2;
-
-    Setting.OnePlayer.MenuRect = {Setting.OnePlayer.playField.y/4, Setting.OnePlayer.playField.y/4, Setting.OnePlayer.playField.y, Setting.OnePlayer.playField.y/2};
-    Setting.OnePlayer.MenuRect.w = Setting.OnePlayer.MenuRect.h / Setting.OnePlayer.menu.height * Setting.OnePlayer.menu.width + Setting.OnePlayer.menu.height;
-    // cout << OnePlayer.MenuRect.x << " " << OnePlayer.MenuRect.y << " " << OnePlayer.MenuRect.w << " " << OnePlayer.MenuRect.h << "\n" ;
-    Setting.OnePlayer.walfieRect = {SCREEN_WIDTH - Setting.OnePlayer.playField.y/2*3, 0, Setting.OnePlayer.playField.y/2*3 , Setting.OnePlayer.playField.y};
-    Setting.OnePlayer.walfieMovingRect = Setting.OnePlayer.walfieRect;
+    Setting.OnePlayer.settingUp1p(SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 //----------------------------------------- menu-related ------------------------------------------
@@ -119,7 +104,7 @@ void event_handling() {
         if (Menu.menu_event_handling(e, current_state, renderer, Setting)) quit = true;
     }
     else if (current_state == settingScreen) {
-        bool check = Setting.setting_event_handling(e, mouse);
+        bool check = Setting.setting_event_handling(e);
         if (check) current_state = menuScreen;
     }
 }
@@ -129,7 +114,7 @@ void event_handling() {
 void settingUpEverything() {
     ifstream inp("savedSettings.txt");
     // for (int i=0;i<3;i++) inp >> savedSetting[i] ;
-    inp >> Setting.OnePlayer.chosenDifficulty >> Setting.OnePlayer.onePlayerChosenBackgroundX >> mouse.usingCursor ;
+    inp >> Setting.OnePlayer.chosenDifficulty >> Setting.OnePlayer.onePlayerChosenBackgroundX >> Setting.mouse.usingCursor ;
     inp.close();
 
     settingUpOnePerson();
@@ -138,8 +123,8 @@ void settingUpEverything() {
 
     savedSetting[0] = &Setting.OnePlayer.chosenDifficulty ;
     savedSetting[1] = &Setting.OnePlayer.onePlayerChosenBackgroundX ;
-    savedSetting[2] = &mouse.usingCursor;
-    mouse.setCursor();
+    savedSetting[2] = &Setting.mouse.usingCursor;
+    Setting.mouse.setCursor();
 
     // OnePlayer.restart1p(board);
 }
@@ -149,7 +134,6 @@ void graduate() {
     for (int i=0;i<3;i++) output << *savedSetting[i] << " " ;
     output.close();
 
-    mouse.CURSORfree();
     Menu.MENUfree();
     Setting.SETTINGfree();
     quitSDL(window, renderer);
@@ -199,7 +183,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
 
             event_handling();
         }
-        mouse.cursor_event_handling();
+        Setting.mouse.cursor_event_handling();
         switch (current_state) {
             case menuScreen:
                 Menu.drawingMenu(renderer);
@@ -208,10 +192,10 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
                 Setting.OnePlayer.drawOnePlayer(renderer, MouseIsDown);
                 break;
             case settingScreen:
-                Setting.drawingSetting(renderer, mouse);
+                Setting.drawingSetting(renderer);
                 break;
         }
-        mouse.drawCursor(renderer);
+        Setting.mouse.drawCursor(renderer);
 
         SDL_RenderPresent(renderer);
     }

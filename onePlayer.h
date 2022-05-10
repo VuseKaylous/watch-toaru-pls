@@ -34,6 +34,7 @@ struct ONEPLAYER {
 	void ONEPLAYERfree();
 	bool loadOnePlayer(SDL_Renderer *renderer, TTF_Font *gFont);
 	void restart1p();
+	void settingUp1p(int screen_width, int screen_height);
 	void board_event_handling(SDL_Event e);
 	void onePlayer_event_handling(SDL_Event e, int &current_state);
 	void drawWalfie(SDL_Renderer *renderer);

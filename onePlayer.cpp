@@ -133,6 +133,22 @@ void ONEPLAYER::restart1p() {
     // cout << board.numNotBombs << "\n" ;
 }
 
+void ONEPLAYER::settingUp1p(int screen_width, int screen_height) {
+    board.squareSize = screen_width/board.Cols;
+    playField = {0,screen_height - board.Rows * board.squareSize,screen_width, board.Rows * board.squareSize};
+
+    // OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
+    RestartRect.w = RestartRect.h = playField.y/2;
+    RestartRect.x = screen_width/2 - RestartRect.w/2;
+    RestartRect.y = RestartRect.h/2;
+
+    MenuRect = {playField.y/4, playField.y/4, playField.y, playField.y/2};
+    MenuRect.w = MenuRect.h / menu.height * menu.width + menu.height;
+    // cout << OnePlayer.MenuRect.x << " " << OnePlayer.MenuRect.y << " " << OnePlayer.MenuRect.w << " " << OnePlayer.MenuRect.h << "\n" ;
+    walfieRect = {screen_width - playField.y/2*3, 0, playField.y/2*3 , playField.y};
+    walfieMovingRect = walfieRect;
+}
+
 //------------------------------------ one-player-related --------------------------------------
 
 void ONEPLAYER::board_event_handling(SDL_Event e) {

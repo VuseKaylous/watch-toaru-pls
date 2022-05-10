@@ -16,7 +16,7 @@ void BOARD::BOARDfree() {
         SDL_DestroyTexture(numbers[i]);
         numbers[i] = NULL;
     }
-    ofstream output("boardSetting.txt", ios::out | ios::trunc);
+    ofstream output("boardSettingSolo.txt", ios::out | ios::trunc);
     output << Rows << " " << Cols << " " << difficulty << "\n" ;
     for (int i=0;i<Rows;i++) {
         for (int j=0;j<Cols;j++) {
@@ -104,7 +104,7 @@ void BOARD::setDifficulty(int chosenDifficulty) {
 BOARD::BOARD() {
     // setDifficulty(1);
     trigerredX = trigerredY = -1;
-    ifstream fi("boardSetting.txt");
+    ifstream fi("boardSettingSolo.txt");
     if (fi.eof()) {
         setDifficulty(3);
         reset();

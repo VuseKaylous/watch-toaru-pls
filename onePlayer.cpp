@@ -193,9 +193,9 @@ void ONEPLAYER::drawWalfie(SDL_Renderer *renderer) {
 }
 
 void ONEPLAYER::drawOnePlayer(SDL_Renderer *renderer, bool MouseDown) {
-    SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
+    // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
     if (onePlayerChosenBackgroundX == 2) {
-        SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);
+        SDL_RenderCopy(renderer, onePlayerBackgroundTextureGif[onePlayerChosenBackgroundY/4], NULL, &playField);
         onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);
     } else {
         if (onePlayerChosenBackgroundY >= onePlayerBackgroundSize) onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;

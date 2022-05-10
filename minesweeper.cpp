@@ -206,8 +206,8 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
                 if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                 if (e.key.keysym.sym == SDLK_3) {
                     OnePlayer.chosenDifficulty = 3;
-                    board.setDifficulty(3);
-                    OnePlayer.restart1p(board);
+                    OnePlayer.board.setDifficulty(3);
+                    OnePlayer.restart1p();
                 }
             }
             if (e.type == SDL_MOUSEBUTTONDOWN) MouseIsDown = true;
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) { // watch toaru pls :)
                 Menu.drawingMenu(renderer);
                 break;
             case onePlayerScreen:
-                OnePlayer.drawOnePlayer(board, renderer, MouseIsDown);
+                OnePlayer.drawOnePlayer(renderer, MouseIsDown);
                 break;
             case settingScreen:
                 Setting.drawingSetting(renderer, OnePlayer, mouse);

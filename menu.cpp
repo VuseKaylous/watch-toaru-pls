@@ -32,7 +32,7 @@ bool MENU::loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) {
     return success;
 }
 
-bool MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, BOARD &board, SETTING &Setting) {
+bool MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, SETTING &Setting) {
     bool rt = false;
     if (e.type == SDL_MOUSEBUTTONUP) {
         // int x,y;
@@ -48,7 +48,7 @@ bool MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *re
                         break;
                     case NewGame :
                         current_state = 1 ; // onePlayerScreen
-                        OnePlayer.restart1p(board) ;
+                        OnePlayer.restart1p() ;
                         break;
                     case Settings :
                         current_state = 2 ; // settingScreen

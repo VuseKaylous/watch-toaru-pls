@@ -17,7 +17,7 @@ struct SETTING {
 
 	bool loadSetting(SDL_Renderer *renderer, TTF_Font *gFont);
 
-	bool setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, BOARD &board, CURSOR &mouse) ;
+	bool setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, CURSOR &mouse) ;
 
 	void settingUpSettings() ;
 

@@ -8,6 +8,8 @@
 using namespace std;
 
 ONEPLAYER::ONEPLAYER() {
+    board.BOARDfree();
+    
     chosenDifficulty = 1;
     onePlayerChosenBackgroundX = 0;
     chosenWalfie = 0;
@@ -112,7 +114,7 @@ bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer, TTF_Font *gFont) {
     return success;
 }
 
-void ONEPLAYER::restart1p(BOARD &board) {
+void ONEPLAYER::restart1p() {
     board.setDifficulty(chosenDifficulty);
     board.squareSize = playField.w/board.Cols;
     board.reset();
@@ -129,7 +131,7 @@ void ONEPLAYER::restart1p(BOARD &board) {
 
 //------------------------------------ one-player-related --------------------------------------
 
-void ONEPLAYER::board_event_handling(BOARD &board, SDL_Event e) {
+void ONEPLAYER::board_event_handling(SDL_Event e) {
     if (e.type == SDL_MOUSEBUTTONUP) {
         int x,y;
         SDL_GetMouseState(&x,&y);
@@ -190,7 +192,7 @@ void ONEPLAYER::drawWalfie(SDL_Renderer *renderer) {
     }
 }
 
-void ONEPLAYER::drawOnePlayer(BOARD &board, SDL_Renderer *renderer, bool MouseDown) {
+void ONEPLAYER::drawOnePlayer(SDL_Renderer *renderer, bool MouseDown) {
     SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
     if (onePlayerChosenBackgroundX == 2) {
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/4], NULL, &playField);

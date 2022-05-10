@@ -27,7 +27,6 @@ SDL_Event e;
 TTF_Font *gFont = NULL;
 bool MouseIsDown = false;
 
-BOARD board;
 ONEPLAYER OnePlayer;
 SETTING Setting;
 MENU Menu;
@@ -59,7 +58,7 @@ bool loadMedia()
         return success;
     }
 
-    bool checkSuccess = board.loadRushia(renderer);
+    bool checkSuccess = OnePlayer.board.loadRushia(renderer);
     if (!checkSuccess) success = false;
     // cout << "fuck\n" ;
     checkSuccess = OnePlayer.loadOnePlayer(renderer, gFont);
@@ -83,8 +82,8 @@ bool loadMedia()
 //------------------------------------------ One-person-related ------------------------------------
 
 void settingUpOnePerson() {
-    board.squareSize = SCREEN_WIDTH/board.Cols;
-    OnePlayer.playField = {0,SCREEN_HEIGHT - board.Rows * board.squareSize,SCREEN_WIDTH, board.Rows * board.squareSize};
+    OnePlayer.board.squareSize = SCREEN_WIDTH/OnePlayer.board.Cols;
+    OnePlayer.playField = {0,SCREEN_HEIGHT - OnePlayer.board.Rows * OnePlayer.board.squareSize,SCREEN_WIDTH, OnePlayer.board.Rows * OnePlayer.board.squareSize};
 
     // OnePlayer.RestartRect = {(SCREEN_WIDTH-board.squareSize)/2,(OnePlayer.playField.y-board.squareSize)/2,board.squareSize*2,board.squareSize*2};
     OnePlayer.RestartRect.w = OnePlayer.RestartRect.h = OnePlayer.playField.y/2;
@@ -118,10 +117,10 @@ void settingUpSettingMain() {
 void event_handling() {
     if (current_state == onePlayerScreen) {
         if (isInSDLRect(OnePlayer.playField)) {
-            OnePlayer.board_event_handling(board, e);
+            OnePlayer.board_event_handling(e);
         }
         else if (isInSDLRect(OnePlayer.RestartRect)) {
-            if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p(board);
+            if (e.type == SDL_MOUSEBUTTONUP) OnePlayer.restart1p();
         }
         else if (isInSDLRect(OnePlayer.MenuRect)) {
             if (e.type == SDL_MOUSEBUTTONUP) {
@@ -132,10 +131,10 @@ void event_handling() {
         }
     }
     else if (current_state == menuScreen) {
-        if (Menu.menu_event_handling(e, current_state, renderer, OnePlayer, board, Setting)) quit = true;
+        if (Menu.menu_event_handling(e, current_state, renderer, OnePlayer, Setting)) quit = true;
     }
     else if (current_state == settingScreen) {
-        bool check = Setting.setting_event_handling(e, OnePlayer, board, mouse);
+        bool check = Setting.setting_event_handling(e, OnePlayer, mouse);
         if (check) current_state = menuScreen;
     }
 }
@@ -166,7 +165,6 @@ void graduate() {
     output.close();
 
     mouse.CURSORfree();
-    board.BOARDfree();
     Menu.MENUfree();
     Setting.SETTINGfree();
     OnePlayer.ONEPLAYERfree();

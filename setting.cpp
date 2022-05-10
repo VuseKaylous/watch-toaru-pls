@@ -61,7 +61,7 @@ bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
     return success;
 }
 
-bool SETTING::setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, BOARD &board, CURSOR &mouse) {
+bool SETTING::setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, CURSOR &mouse) {
     if (e.type == SDL_MOUSEBUTTONUP) {
     	if (isInSDLRect(backRect)) {
             return true;
@@ -73,7 +73,7 @@ bool SETTING::setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, BOARD &b
                     switch (i) {
                         case 0:
                             OnePlayer.chosenDifficulty = j-1;
-                            OnePlayer.restart1p(board);
+                            OnePlayer.restart1p();
                             break;
                         case 1:
                             OnePlayer.onePlayerChosenBackgroundX = j-1;

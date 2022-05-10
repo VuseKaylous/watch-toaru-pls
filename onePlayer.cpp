@@ -46,7 +46,11 @@ void ONEPLAYER::ONEPLAYERfree() {
 }
 
 bool ONEPLAYER::loadOnePlayer(SDL_Renderer *renderer, TTF_Font *gFont) {
-    bool success = true;
+    bool success = true, checkSuccess = true;
+
+    checkSuccess = board.loadRushia(renderer);
+    if (!checkSuccess) success = false;
+
     string loadingPictures = "picture/SDL_image_related/";
 
     loadingPictures = "picture/SDL_image_related/RestartButton.png";
@@ -181,6 +185,22 @@ void ONEPLAYER::board_event_handling(SDL_Event e) {
     }
 }
 
+void ONEPLAYER::onePlayer_event_handling(SDL_Event e, int &current_state) {
+    if (isInSDLRect(playField)) {
+        board_event_handling(e);
+    }
+    else if (isInSDLRect(RestartRect)) {
+        if (e.type == SDL_MOUSEBUTTONUP) restart1p();
+    }
+    else if (isInSDLRect(MenuRect)) {
+        if (e.type == SDL_MOUSEBUTTONUP) {
+            current_state = 0; // menuScreen
+            // SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+            // SDL_RenderClear(renderer);
+        }
+    }
+}
+
 void ONEPLAYER::drawWalfie(SDL_Renderer *renderer) {
     chosenWalfie = (chosenWalfie + 1)%12;
     SDL_Rect fillRect = walfieMovingRect;
@@ -193,7 +213,6 @@ void ONEPLAYER::drawWalfie(SDL_Renderer *renderer) {
 }
 
 void ONEPLAYER::drawOnePlayer(SDL_Renderer *renderer, bool MouseDown) {
-    // SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY/2], NULL, &playField);
     if (onePlayerChosenBackgroundX == 2) {
         SDL_RenderCopy(renderer, onePlayerBackgroundTextureGif[onePlayerChosenBackgroundY/4], NULL, &playField);
         onePlayerChosenBackgroundY = (onePlayerChosenBackgroundY + 1)%(39*4);

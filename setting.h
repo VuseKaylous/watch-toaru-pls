@@ -13,17 +13,19 @@ struct SETTING {
 	SDL_Rect listSettingRects[3][4];
 	SDL_Rect backRect;
 
+	ONEPLAYER OnePlayer;
+
 	SETTING();
 
 	bool loadSetting(SDL_Renderer *renderer, TTF_Font *gFont);
 
-	bool setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, CURSOR &mouse) ;
+	bool setting_event_handling(SDL_Event e, CURSOR &mouse) ;
 
 	void settingUpSettings() ;
 
 	void drawBackButton(SDL_Renderer *renderer) ;
 
-	void drawingSetting(SDL_Renderer *renderer, ONEPLAYER &OnePlayer, CURSOR &mouse) ;
+	void drawingSetting(SDL_Renderer *renderer, CURSOR &mouse) ;
 
 	void SETTINGfree();
 

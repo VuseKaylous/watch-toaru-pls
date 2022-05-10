@@ -18,7 +18,7 @@ struct MENU {
 
     bool loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) ;
 
-    bool menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, ONEPLAYER &OnePlayer, SETTING &Setting) ;
+    bool menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, SETTING &Setting) ;
 
     void settingUpMenu_Menu(int x, int y,int w, int h) ;
 

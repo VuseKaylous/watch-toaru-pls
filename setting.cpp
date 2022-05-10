@@ -20,6 +20,7 @@ int listSettingSizeX = 3, listSettingSizeY = 4;
 string listSettingName[3][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}, {"Cursor:", "normal", "osu", ""}};
 
 void SETTING::SETTINGfree() {
+    OnePlayer.ONEPLAYERfree();
     for (int i=0;i<backGifs;i++) {
         SDL_DestroyTexture( backButton[i] );
         backButton[i] = NULL;
@@ -33,7 +34,11 @@ void SETTING::SETTINGfree() {
 }
 
 bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
-	bool success = true;
+	bool success = true, checkSuccess = true;
+
+    checkSuccess = OnePlayer.loadOnePlayer(renderer, gFont);
+    if (!checkSuccess) success = false;
+
 	string loadingPictures;
 	loadingPictures = "picture/SDL_image_related/back/";
     for (int i=0;i<backGifs;i++) {
@@ -61,7 +66,7 @@ bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
     return success;
 }
 
-bool SETTING::setting_event_handling(SDL_Event e, ONEPLAYER &OnePlayer, CURSOR &mouse) {
+bool SETTING::setting_event_handling(SDL_Event e, CURSOR &mouse) {
     if (e.type == SDL_MOUSEBUTTONUP) {
     	if (isInSDLRect(backRect)) {
             return true;
@@ -110,7 +115,7 @@ void SETTING::drawBackButton(SDL_Renderer *renderer) {
     SDL_RenderCopy(renderer, backButton[chosenBackPic/2], NULL, &backRect);
 }
 
-void SETTING::drawingSetting(SDL_Renderer *renderer, ONEPLAYER &OnePlayer, CURSOR &mouse) {
+void SETTING::drawingSetting(SDL_Renderer *renderer, CURSOR &mouse) {
     SDL_RenderCopy(renderer, settingBackground, NULL, NULL);
     
     for (int i=0;i<listSettingSizeX;i++) {

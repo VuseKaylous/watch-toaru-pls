@@ -129,11 +129,12 @@ void settingUpEverything() {
     savedSetting[3] = &Menu.Setting.chosenMouseMode;
     Menu.Setting.OnePlayer.mouse.setCursor();
 
+    mainScreen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
     // OnePlayer.restart1p(board);
 }
 
 void drawEverything() {
-    mainScreen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+    // mainScreen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
     SDL_SetRenderTarget(renderer, mainScreen);
 
     SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
@@ -151,6 +152,9 @@ void drawEverything() {
             break;
     }
     SDL_SetRenderTarget(renderer, presentScreen);
+    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+    SDL_RenderClear(renderer);
+
     if (current_state == onePlayerScreen && Menu.Setting.chosenMouseMode == 1) {
         SDL_RenderCopy(renderer, mainScreen, &Menu.Setting.OnePlayer.miniScreen.boingboing, NULL);
     } else {
@@ -158,7 +162,6 @@ void drawEverything() {
     }
     Menu.Setting.OnePlayer.mouse.drawCursor(renderer);
     SDL_RenderPresent(renderer);
-    SDL_RenderClear(renderer);
 }
 
 void graduate() {

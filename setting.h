@@ -9,12 +9,13 @@ struct SETTING {
 	int backGifs = 41, chosenBackPic;
 	SDL_Texture* backButton[41], *settingBackground;
 
-	LTexture listSettingTexture[3][4];
-	SDL_Rect listSettingRects[3][4];
+	LTexture listSettingTexture[4][4];
+	SDL_Rect listSettingRects[4][4];
 	SDL_Rect backRect;
 
+	int chosenMouseMode;
+
 	ONEPLAYER OnePlayer;
-	CURSOR mouse;
 
 	SETTING();
 

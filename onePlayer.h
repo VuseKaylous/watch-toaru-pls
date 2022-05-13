@@ -2,8 +2,10 @@
 #define ONEPLAYER_H
 
 #include <SDL.h>
+#include "cursor.h"
 #include "loadTexture.h"
 #include "rushia.h"
+#include "subScreen.h"
 
 // using namespace std;
 
@@ -24,6 +26,9 @@ struct ONEPLAYER {
 	LTexture menu;
 
 	BOARD board;
+	CURSOR mouse;
+
+	SUBSCREEN miniScreen;
 
 	SDL_Rect RestartRect, playField, MenuRect, walfieRect, walfieMovingRect;
 	int onePlayerChosenBackgroundX, onePlayerChosenBackgroundY, chosenWalfie;

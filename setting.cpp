@@ -16,12 +16,12 @@ SETTING::~SETTING() {
 }
 
 
-int listSettingSizeX = 3, listSettingSizeY = 4;
-string listSettingName[3][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}, {"Cursor:", "normal", "osu", ""}};
+int listSettingSizeX = 4, listSettingSizeY = 4;
+string listSettingName[4][4] = {{"Difficulty:", "Easy", "Medium", "Hard"},{"Background:", "ver 1", "ver 2", "ver 3"}, {"Cursor:", "normal", "osu", ""}, {"Special mode:", "none", "mini mode", ""}};
 
 void SETTING::SETTINGfree() {
     OnePlayer.ONEPLAYERfree();
-    mouse.CURSORfree();
+    OnePlayer.mouse.CURSORfree();
     for (int i=0;i<backGifs;i++) {
         SDL_DestroyTexture( backButton[i] );
         backButton[i] = NULL;
@@ -39,7 +39,7 @@ bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
 
     checkSuccess = OnePlayer.loadOnePlayer(renderer, gFont);
     if (!checkSuccess) success = false;
-    checkSuccess = mouse.loadCursor(renderer);
+    checkSuccess = OnePlayer.mouse.loadCursor(renderer);
     if (!checkSuccess) success = false;
 
 	string loadingPictures;
@@ -70,14 +70,15 @@ bool SETTING::loadSetting(SDL_Renderer *renderer, TTF_Font *gFont) {
 }
 
 bool SETTING::setting_event_handling(SDL_Event e) {
+    // OnePlayer.mouse.getExactPos(OnePlayer.miniScreen);
     if (e.type == SDL_MOUSEBUTTONUP) {
-    	if (isInSDLRect(backRect)) {
+    	if (isInSDLRect(backRect, OnePlayer.mouse.realPosX, OnePlayer.mouse.realPosY)) {
             return true;
         }
         for (int i=0;i<listSettingSizeX;i++) {
             for (int j=1;j<listSettingSizeY;j++) {
                 if (listSettingName[i][j].size() == 0) continue;
-                if (isInSDLRect(listSettingRects[i][j]) && j>0) {
+                if (isInSDLRect(listSettingRects[i][j], OnePlayer.mouse.realPosX, OnePlayer.mouse.realPosY) && j>0) {
                     switch (i) {
                         case 0:
                             OnePlayer.chosenDifficulty = j-1;
@@ -87,8 +88,12 @@ bool SETTING::setting_event_handling(SDL_Event e) {
                             OnePlayer.onePlayerChosenBackgroundX = j-1;
                             break;
                         case 2:
-                            mouse.usingCursor = j-1;
-                            mouse.setCursor();
+                            OnePlayer.mouse.usingCursor = j-1;
+                            OnePlayer.mouse.setCursor();
+                            break;
+                        case 3:
+                            chosenMouseMode = j-1;
+                            OnePlayer.miniScreen.setSubScreen(j-1);
                             break;
                     }
                 }
@@ -120,15 +125,25 @@ void SETTING::drawBackButton(SDL_Renderer *renderer) {
 
 void SETTING::drawingSetting(SDL_Renderer *renderer) {
     SDL_RenderCopy(renderer, settingBackground, NULL, NULL);
-    
+    // OnePlayer.mouse.getExactPos(OnePlayer.miniScreen);
     for (int i=0;i<listSettingSizeX;i++) {
         int chosenNumber = 1;
-        if (i==0) chosenNumber = OnePlayer.chosenDifficulty;
-        if (i==1) chosenNumber = OnePlayer.onePlayerChosenBackgroundX;
-        if (i==2) chosenNumber = mouse.usingCursor;
+        switch (i) {
+            case 0:
+                chosenNumber = OnePlayer.chosenDifficulty;
+                break;
+            case 1:
+                chosenNumber = OnePlayer.onePlayerChosenBackgroundX;
+                break;
+            case 2:
+                chosenNumber = OnePlayer.mouse.usingCursor;
+                break;
+            case 3:
+                chosenNumber = chosenMouseMode;
+        }
         for (int j=0;j<listSettingSizeY;j++) {
             if (listSettingName[i][j].size() == 0) continue;
-            if (j>0 && isInSDLRect(listSettingRects[i][j])) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            if (j>0 && isInSDLRect(listSettingRects[i][j], OnePlayer.mouse.realPosX, OnePlayer.mouse.realPosY)) SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             else {
                 if (j-1 == chosenNumber) SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                 else SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

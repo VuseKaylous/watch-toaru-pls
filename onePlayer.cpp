@@ -134,6 +134,9 @@ void ONEPLAYER::restart1p() {
 }
 
 void ONEPLAYER::settingUp1p(int screen_width, int screen_height) {
+    miniScreen.mainScreen = {0,0,screen_width,screen_height};
+    miniScreen.boingboing = miniScreen.mainScreen;
+
     board.squareSize = screen_width/board.Cols;
     playField = {0,screen_height - board.Rows * board.squareSize,screen_width, board.Rows * board.squareSize};
 
@@ -152,9 +155,13 @@ void ONEPLAYER::settingUp1p(int screen_width, int screen_height) {
 //------------------------------------ one-player-related --------------------------------------
 
 void ONEPLAYER::board_event_handling(SDL_Event e) {
+    int x,y;
+    // mouse.getExactPos(miniScreen);
+    x = mouse.posX;
+    y = mouse.posY;
     if (e.type == SDL_MOUSEBUTTONUP) {
-        int x,y;
-        SDL_GetMouseState(&x,&y);
+        
+        // SDL_GetMouseState(&x,&y);
         if (y >= playField.y) { // inside board
             if (winningShowUp == 0) {
                 int xi = y - playField.y,yi=x;
@@ -186,8 +193,6 @@ void ONEPLAYER::board_event_handling(SDL_Event e) {
     }
     if (e.button.clicks == 2) {
         // cout << "fuck " ;
-        int x,y;
-        SDL_GetMouseState(&x,&y);
         int xi = y - playField.y,yi=x;
         xi/=board.squareSize;
         yi/=board.squareSize;
@@ -202,13 +207,14 @@ void ONEPLAYER::board_event_handling(SDL_Event e) {
 }
 
 void ONEPLAYER::onePlayer_event_handling(SDL_Event e, int &current_state) {
-    if (isInSDLRect(playField)) {
+    // mouse.getExactPos(miniScreen);
+    if (isInSDLRect(playField, mouse.posX, mouse.posY)) {
         board_event_handling(e);
     }
-    else if (isInSDLRect(RestartRect)) {
+    else if (isInSDLRect(RestartRect, mouse.posX, mouse.posY)) {
         if (e.type == SDL_MOUSEBUTTONUP) restart1p();
     }
-    else if (isInSDLRect(MenuRect)) {
+    else if (isInSDLRect(MenuRect, mouse.posX, mouse.posY)) {
         if (e.type == SDL_MOUSEBUTTONUP) {
             current_state = 0; // menuScreen
             // SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
@@ -236,7 +242,7 @@ void ONEPLAYER::drawOnePlayer(SDL_Renderer *renderer, bool MouseDown) {
         if (onePlayerChosenBackgroundY >= onePlayerBackgroundSize) onePlayerChosenBackgroundY = rand() % onePlayerBackgroundSize;
         SDL_RenderCopy(renderer, onePlayerBackgroundTexture[onePlayerChosenBackgroundX][onePlayerChosenBackgroundY], NULL, &playField);
     }
-    board.drawBoard(renderer, playField, MouseDown);
+    board.drawBoard(renderer, playField, MouseDown, mouse.posX, mouse.posY);
 
     walfieMovingRect.x --;
     if (walfieMovingRect.x < walfieRect.x - walfieRect.w) walfieMovingRect.x = walfieRect.x + walfieRect.w;

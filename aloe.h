@@ -6,9 +6,9 @@
 
 using namespace std;
 
-bool isIn(int x1,int y1,int x2,int y2);
+// bool isIn(int x1,int y1,int x2,int y2);
 
-bool isInSDLRect(SDL_Rect rect);
+bool isInSDLRect(SDL_Rect rect, int x, int y);
 
 string toString(int x);
 

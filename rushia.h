@@ -31,8 +31,8 @@ public:
     int countFlags(int x,int y) ;
     void floodField(int x,int y) ;
     bool floodField2(int x,int y) ;
-    void drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi, bool MouseDown);
-    void drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown) ;
+    void drawSquare(int x,int y, SDL_Renderer* renderer, int xi,int yi, bool MouseDown, int mousePosX, int mousePosY);
+    void drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown, int mousePosX, int mousePosY) ;
 };
 
 #endif

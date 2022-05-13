@@ -205,13 +205,13 @@ bool BOARD::floodField2(int x,int y) {
     }
     return true;
 }
-void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown) {
+void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown, int mousePosX, int mousePosY) {
     // SDL_SetRenderDrawColor(renderer, 0,0,0,20);
     // SDL_RenderFillRect(renderer, &playField);
     for (int i=0;i<Rows;i++) {
         for (int j=0;j<Cols;j++) {
             // drawSquare(0+j*squareSize, SCREEN_HEIGHT - (Rows-i)*squareSize, squareSize,squareSize,cover[i][j], renderer, countBombs(i,j), i,j);
-            drawSquare(playField.x + j*squareSize, playField.y + i*squareSize, squareSize,squareSize, renderer, i, j, MouseDown);
+            drawSquare(playField.x + j*squareSize, playField.y + i*squareSize, renderer, i, j, MouseDown, mousePosX, mousePosY);
             // cout << countBombs(i,j) << "\n" ;
         }
     }
@@ -225,10 +225,10 @@ void BOARD::drawBoard(SDL_Renderer* renderer, SDL_Rect playField, bool MouseDown
     
 }
 
-void BOARD::drawSquare(int x,int y, int w,int h, SDL_Renderer* renderer, int xi,int yi, bool MouseDown) {
-    SDL_Rect fillRect = { x, y, w, h };
+void BOARD::drawSquare(int x,int y, SDL_Renderer* renderer, int xi,int yi, bool MouseDown, int mousePosX, int mousePosY) {
+    SDL_Rect fillRect = { x, y, squareSize, squareSize };
     if (cover[xi][yi]) {
-        if (isIn(x,y,x+w,y+h)) { // hovering
+        if (isInSDLRect(fillRect, mousePosX, mousePosY)) { // hovering
             if (MouseDown) {
                 SDL_SetRenderDrawColor(renderer, 117, 202, 255, 200);
                 SDL_RenderFillRect(renderer, &fillRect);

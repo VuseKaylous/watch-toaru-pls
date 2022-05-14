@@ -14,11 +14,13 @@ struct MENU {
     SDL_Rect MenuRects[4];
     SDL_Texture *menuBackground;
 
+    SETTING Setting;
+
     MENU();
 
     bool loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) ;
 
-    bool menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, SETTING &Setting) ;
+    bool menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer) ;
 
     void settingUpMenu_Menu(int x, int y,int w, int h) ;
 

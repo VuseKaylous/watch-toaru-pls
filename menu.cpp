@@ -32,14 +32,15 @@ bool MENU::loadMenu(SDL_Renderer* renderer, TTF_Font *gFont) {
     return success;
 }
 
-bool MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer, SETTING &Setting) {
+bool MENU::menu_event_handling(SDL_Event e, int &current_state, SDL_Renderer *renderer) {
     bool rt = false;
+    // Setting.OnePlayer.mouse.getExactPos(Setting.OnePlayer.miniScreen);
     if (e.type == SDL_MOUSEBUTTONUP) {
         // int x,y;
         // SDL_GetMouseState(&x,&y);
         for (int i=0;i<listMenuSize;i++) {
             // SDL_Rect fillRect = {SCREEN_WIDTH/2 - maxWidth/2,topLeftY + i*(20 + maxHeight), maxWidth, maxHeight};
-            if (isInSDLRect(MenuRects[i])) {
+            if (isInSDLRect(MenuRects[i], Setting.OnePlayer.mouse.realPosX, Setting.OnePlayer.mouse.realPosY)) {
                 SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
                 // SDL_RenderClear(renderer);
                 switch (i) {

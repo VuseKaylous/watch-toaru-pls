@@ -4,7 +4,7 @@
 #include "cursor.h"
 
 CURSOR::CURSOR(){
-	usingCursor = 0;
+	usingCursor = changingTrace = 0;
 	tracesSize = 20;
 	int x,y;
     SDL_GetMouseState(&x,&y);
@@ -32,6 +32,13 @@ void CURSOR::setCursor() {
 	}
 }
 
+void CURSOR::getExactPos(SUBSCREEN smolRect) {
+	SDL_GetMouseState(&realPosX, &realPosY);
+	float ratio = 0;
+	posX = realPosX * smolRect.boingboing.w/smolRect.mainScreen.w  + smolRect.boingboing.x;
+	posY = realPosY * smolRect.boingboing.h/smolRect.mainScreen.h  + smolRect.boingboing.y;
+}
+
 void CURSOR::CURSORfree() {
 	SDL_FreeCursor(osuCursor);
 	SDL_FreeCursor(normalCursor);
@@ -42,8 +49,10 @@ void CURSOR::CURSORfree() {
 void CURSOR::cursor_event_handling() {
 	int x,y;
 	SDL_GetMouseState(&x, &y);
-	for (int i=19;i>0;i--) traces[i] = traces[i-1];
-	traces[0] = {x,y};
+	// cout << x << " " << y << "\n" ;
+	// for (int i=19;i>0;i--) traces[i] = traces[i-1];
+	traces[changingTrace] = {x,y};
+	changingTrace = (changingTrace+1) % tracesSize;
 }
 void CURSOR::drawPoint(SDL_Renderer *renderer, SDL_Point p) {
 	SDL_Rect fillRect = {p.x, p.y, 8, 8};
